@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Country, State } from "country-state-city";
 // import Link from "next/link";
-// import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useFormContext, FormRegister } from "@/app/context/register/Register";
 
 interface PropsInput {
@@ -37,7 +37,17 @@ const InputField: React.FC<PropsInput> = ({
 const Register: React.FC = () => {
   const [countries, setCountries] = useState<any[]>([]);
   const [states, setStates] = useState<any[]>([]);
-  // const router = useRouter();
+  const [avatarImage, setAvatarImage] = useState<{
+    [key: string]: File | string;
+  }>({
+    1: "",
+    2: "",
+    3: "",
+    4: "",
+    5: "",
+  });
+
+  const router = useRouter();
 
   const { formData, updateFormData, currentStep, setCurrentStep } =
     useFormContext();
@@ -52,6 +62,17 @@ const Register: React.FC = () => {
   const getStateName = (code: string) => {
     const state = states.find((s) => s.isoCode === code);
     return state ? state.name : "";
+  };
+
+  const handleFileChange = (e) => {
+    const imageId = Date.now();
+    setAvatarImage({ ...avatarImage, [imageId]: e.target.files[0] });
+  };
+
+  const handleDeleteImage = (key_images: string) => {
+    const afterDeleteImage = { ...avatarImage };
+    afterDeleteImage[key_images] = "";
+    setAvatarImage(afterDeleteImage);
   };
 
   const handleNext = () => {
@@ -82,17 +103,15 @@ const Register: React.FC = () => {
           data: updatedFormData,
         },
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
-      // router.push("/login");
       console.log("User registered:", results.data);
     } catch (error) {
       console.log("Can't register now error", error);
     }
     console.log("Form submitted:", updatedFormData);
+    router.push("/auth/login");
   };
 
   useEffect(() => {
@@ -390,18 +409,44 @@ const Register: React.FC = () => {
                 <div className="text-[16px] font-400">
                   Upload at least 2 photos
                 </div>
-                <div className="border-[1px] border-[pink]">
-                  <div className="border-[1px] w-[167px] h-[167px] flex justify-center items-center">
-                    <div className="flex flex-col justify-center items-center relative">
-                      <p>+</p>
-                      <p>Upload photo</p>
-                      <input
-                        type="file"
-                        onChange={() => {}}
-                        className="text-[13px] absolute left-[-30px] opacity-0"
-                      />
-                    </div>
-                  </div>
+                <div className="border-[1px] border-[pink] flex justify-between gap-[20px]">
+                  {Object.keys(avatarImage).map((key_images, index_image) => (
+                    <>
+                      <div
+                        key={index_image}
+                        className="border-[1px] border-[green] w-[200px] h-[200px] flex justify-center items-center"
+                      >
+                        {avatarImage[key_images] instanceof File ? (
+                          <div>
+                            <img
+                              src={URL.createObjectURL(avatarImage[key_images])}
+                              alt={"uploaded photo " + index_image}
+                            />
+                            <button
+                              type="button"
+                              id={"remove-image" + index_image}
+                              onClick={() => {
+                                handleDeleteImage(key_images);
+                              }}
+                              className=""
+                            >
+                              x
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="border-[1px] border-[green] flex flex-col justify-center items-center relative">
+                            <div>+</div>
+                            <div>Upload photo</div>
+                            <input
+                              type="file"
+                              onChange={handleFileChange}
+                              className="text-[13px] absolute left-[-30px] opacity-0"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  ))}
                 </div>
               </div>
             )}
@@ -444,14 +489,13 @@ const Register: React.FC = () => {
             <div>3/3</div>
             <div>
               <button onClick={handleBack}>Back</button>
-              {/* <Link href="./login"> */}
+
               <button
                 type="submit"
                 className="bg-red-500 p-[12px_24px_12px_24px] text-white rounded-[99px]"
               >
                 Confirm
               </button>
-              {/* </Link> */}
             </div>
           </div>
         )}

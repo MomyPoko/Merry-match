@@ -5,10 +5,6 @@ interface FormContextType {
   setCurrentStep: (step: number) => void;
   formData: FormDataType;
   updateFormData: (newData: Partial<FormDataType>) => void;
-  // country: string;
-  // setCountry: (country: string) => void;
-  // state: string;
-  // setState: (state: string) => void;
 }
 
 interface FormDataType {
@@ -24,7 +20,7 @@ interface FormDataType {
   // sexPref: string;
   // recailPref: string;
   // meeting: string;
-  // image: { [key: number]: string };
+  image: { [key: number]: string };
 }
 
 export const FormContext = createContext<FormContextType | any>(undefined);
@@ -50,7 +46,7 @@ export const FormRegister: React.FC<{ children: ReactNode }> = ({
     // sexPref: "",
     // recailPref: "",
     // meeting: "",
-    // image: { 1: "", 2: "", 3: "", 4: "", 5: "" },
+    image: { 1: "", 2: "", 3: "", 4: "", 5: "" },
   });
 
   const updateFormData = (newData: Partial<FormDataType>) => {
