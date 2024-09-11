@@ -13,7 +13,7 @@ const userSchema = new Schema(
     email: {
       type: String,
       required: true,
-      unique: false,
+      unique: true,
     },
     password: {
       type: String,
@@ -29,7 +29,7 @@ const userSchema = new Schema(
     },
     dateOfBirth: {
       type: Date,
-      required: true,
+      required: false,
     },
     role: {
       type: String,

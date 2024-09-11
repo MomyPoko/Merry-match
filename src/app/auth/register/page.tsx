@@ -87,7 +87,7 @@ const Register: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const updatedFormData = {
@@ -420,7 +420,7 @@ const Register: React.FC = () => {
                           <div>
                             <img
                               src={URL.createObjectURL(avatarImage[key_images])}
-                              alt={"uploaded photo " + index_image}
+                              alt={"uploaded photo" + index_image}
                             />
                             <button
                               type="button"
@@ -439,7 +439,10 @@ const Register: React.FC = () => {
                             <div>Upload photo</div>
                             <input
                               type="file"
-                              onChange={handleFileChange}
+                              onChange={(event) => {
+                                event.preventDefault();
+                                handleFileChange(event);
+                              }}
                               className="text-[13px] absolute left-[-30px] opacity-0"
                             />
                           </div>
