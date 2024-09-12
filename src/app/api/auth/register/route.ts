@@ -6,7 +6,6 @@ import { NextRequest } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs/promises";
 import "dotenv/config";
-import { IncomingForm } from "formidable";
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -90,9 +89,9 @@ export const POST = async (req: any) => {
         // console.log("check body", body);
 
         // การอัปโหลดไฟล์
-        const avatarFile = (req as any).files;
-        console.log("check avatar file", avatarFile);
-        let images = null;
+        const avatarFile = (req as any).files?.image;
+        console.log("check avatar file", req);
+        let images;
 
         if (avatarFile) {
           const imageArray = [];

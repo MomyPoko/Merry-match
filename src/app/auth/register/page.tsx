@@ -76,7 +76,7 @@ const Register: React.FC = () => {
         ...prevImages,
         [key_images]: file,
       }));
-      console.log(avatarImage);
+      console.log("check avatarimage", avatarImage);
     }
   };
 
