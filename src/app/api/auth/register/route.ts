@@ -2,11 +2,11 @@ import multer from "multer";
 import User from "../../../../models/user";
 import { connectMongoDB } from "../../../../utils/mongodb";
 import bcrypt from "bcrypt";
-// import { NextResponse } from "next/server";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs/promises";
 import "dotenv/config";
+import { IncomingForm } from "formidable";
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -22,6 +22,7 @@ const multerHandler = multerUpload.fields([{ name: "image", maxCount: 5 }]);
 
 const uploadToCloudinary = async (filePath: string) => {
   try {
+    // console.log("baby momo");
     const result = await cloudinary.uploader.upload(filePath, {
       folder: "merry-match/image-upload",
       type: "private",
@@ -37,27 +38,60 @@ const uploadToCloudinary = async (filePath: string) => {
   }
 };
 
-export const POST = async (req: NextApiRequest, res: NextApiResponse) => {
-  return new Promise<void>((resolve, reject) => {
-    multerHandler(req as any, res as any, async (err: any) => {
+export const POST = async (req: any) => {
+  // const body = {};
+  // result.forEach((result, index_result) => {
+  //   body[index_result] = result;
+  // });
+
+  return new Promise<Response>((resolve, reject) => {
+    multerHandler(req as any, {} as any, async (err: any) => {
       if (err) {
         console.error("Error in file upload:", err);
-        res.status(500).json({ message: "Image upload failed" });
-        return resolve();
+        return resolve(
+          new Response(JSON.stringify({ message: "Image upload failed" }), {
+            status: 500,
+          })
+        );
       }
+
+      const formData = await req.formData();
+      console.log("result check", formData);
+
+      const name = formData.get("name");
+      const email = formData.get("email");
+      const username = formData.get("username");
+      const password: string | Buffer = formData.get("password") as
+        | string
+        | Buffer;
+      const country = formData.get("country");
+      const state = formData.get("state");
+      const dateOfBirth = formData.get("dateOfBirth");
+
+      // if (!password) {
+      //   return Response.json({ message: "I need password" });
+      // }
+
+      // const name = (req as any).body.name;
+      // const email = (req as any).body.email;
+      // const username = (req as any).body.username;
+      // const password: string | null = (req as any).body.password;
+      // const country = (req as any).body.country;
+      // const state = (req as any).body.state;
+      // const dateOfBirth = (req as any).body.dateOfBirth;
+      // console.log(name);
 
       try {
         await connectMongoDB();
-
         // console.log("Check request", request.json());
-        // const body = await request.json();
-        const body = req.body;
-        const { name, username, email, password, country, state, dateOfBirth } =
-          body.data;
-        // console.log("check body", body.data);
+        // const body = await req.json();
+        // const body = result as any as UserRegistrationBody;
+
+        // console.log("check body", body);
 
         // การอัปโหลดไฟล์
-        const avatarFile = (req as any).files?.image;
+        const avatarFile = (req as any).files;
+        console.log("check avatar file", avatarFile);
         let images = null;
 
         if (avatarFile) {
@@ -65,14 +99,19 @@ export const POST = async (req: NextApiRequest, res: NextApiResponse) => {
 
           for (const file of avatarFile) {
             const filePath = `/tmp/${file.originalname}`;
+            console.log(filePath);
             await fs.writeFile(filePath, Buffer.from(file.buffer));
 
             const uploadResult = await uploadToCloudinary(filePath);
 
             if (typeof uploadResult === "string") {
               console.error("Failed to upload image:", uploadResult);
-              res.status(500).json({ message: "Image upload failed" });
-              return resolve();
+              return resolve(
+                new Response(
+                  JSON.stringify({ message: "Image upload failed" }),
+                  { status: 500 }
+                )
+              );
             }
 
             const { url, publicId } = uploadResult;
@@ -84,8 +123,12 @@ export const POST = async (req: NextApiRequest, res: NextApiResponse) => {
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
-          res.status(400).json({ message: "Email is already in use." });
-          return resolve();
+          return resolve(
+            new Response(
+              JSON.stringify({ message: "Email is already in use." }),
+              { status: 400 }
+            )
+          );
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -102,15 +145,22 @@ export const POST = async (req: NextApiRequest, res: NextApiResponse) => {
           image: images,
         });
 
-        console.log("User created:", User);
+        // console.log("User created:", User);
 
-        res.status(201).json({ message: "User registered." });
-        return resolve();
+        return resolve(
+          new Response(JSON.stringify({ message: "User registered." }), {
+            status: 201,
+          })
+        );
       } catch (error: unknown) {
         console.log("Error in POST handler:", error);
 
-        res.status(500).json({ message: "User registered fail" });
-        return resolve();
+        return resolve(
+          new Response(
+            JSON.stringify({ message: "User registration failed" }),
+            { status: 500 }
+          )
+        );
       }
     });
   });

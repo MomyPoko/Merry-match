@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 interface FormContextType {
   currentStep: number;
   setCurrentStep: (step: number) => void;
-  formData: FormDataType;
+  allData: FormDataType;
   updateFormData: (newData: Partial<FormDataType>) => void;
 }
 
@@ -33,7 +33,7 @@ export const FormRegister: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<FormDataType>({
+  const [allData, setAllData] = useState<FormDataType>({
     name: "",
     dateOfBirth: "",
     country: "",
@@ -50,7 +50,7 @@ export const FormRegister: React.FC<{ children: ReactNode }> = ({
   });
 
   const updateFormData = (newData: Partial<FormDataType>) => {
-    setFormData((prevData) => ({ ...prevData, ...newData }));
+    setAllData((prevData) => ({ ...prevData, ...newData }));
   };
 
   return (
@@ -58,7 +58,7 @@ export const FormRegister: React.FC<{ children: ReactNode }> = ({
       value={{
         currentStep,
         setCurrentStep,
-        formData,
+        allData,
         updateFormData,
       }}
     >

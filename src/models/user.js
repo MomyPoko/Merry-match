@@ -31,6 +31,12 @@ const userSchema = new Schema(
       type: Date,
       required: false,
     },
+    image: [
+      {
+        url: { type: String },
+        publicId: { type: String },
+      },
+    ],
     role: {
       type: String,
       required: false,

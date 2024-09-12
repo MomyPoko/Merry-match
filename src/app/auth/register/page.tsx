@@ -5,6 +5,7 @@ import { Country, State } from "country-state-city";
 // import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFormContext, FormRegister } from "@/app/context/register/Register";
+import { Result } from "postcss";
 
 interface PropsInput {
   label: string;
@@ -49,10 +50,10 @@ const Register: React.FC = () => {
 
   const router = useRouter();
 
-  const { formData, updateFormData, currentStep, setCurrentStep } =
+  const { allData, updateFormData, currentStep, setCurrentStep } =
     useFormContext();
 
-  console.log("check formData", formData);
+  // console.log("check formData", formData);
 
   const getCountryName = (code: string) => {
     const country = countries.find((c) => c.isoCode === code);
@@ -64,9 +65,19 @@ const Register: React.FC = () => {
     return state ? state.name : "";
   };
 
-  const handleFileChange = (e) => {
-    const imageId = Date.now();
-    setAvatarImage({ ...avatarImage, [imageId]: e.target.files[0] });
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    key_images: string
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      setAvatarImage((prevImages) => ({
+        ...prevImages,
+        [key_images]: file,
+      }));
+      console.log(avatarImage);
+    }
   };
 
   const handleDeleteImage = (key_images: string) => {
@@ -90,28 +101,37 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const updatedFormData = {
-      ...formData,
-      country: getCountryName(formData.country),
-      state: getStateName(formData.state),
-    };
+    const results = new FormData();
+    results.append("name", allData.name);
+    results.append("username", allData.username);
+    results.append("email", allData.email);
+    results.append("password", allData.password);
+    results.append("confirmPassword", allData.confirmPassword);
+    results.append("dateOfBirth", allData.dateOfBirth);
+    results.append("country", getCountryName(allData.country));
+    results.append("state", getStateName(allData.state));
+    Object.keys(avatarImage).forEach((key_image) => {
+      if (
+        avatarImage[key_image] &&
+        typeof avatarImage[key_image] !== "string"
+      ) {
+        results.append("image", avatarImage[key_image]);
+      }
+      // console.log(avatarImage[key_image]);
+    });
+
+    console.log("result check", allData);
 
     try {
-      const results = await axios.post(
-        `/api/auth/register`,
-        {
-          data: updatedFormData,
-        },
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      console.log("User registered:", results.data);
+      const results_data = await axios.post(`/api/auth/register`, results, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log("User registered:", results_data.data);
     } catch (error) {
       console.log("Can't register now error", error);
     }
-    console.log("Form submitted:", updatedFormData);
-    router.push("/auth/login");
+    console.log("Form submitted:", results);
+    // router.push("/auth/login");
   };
 
   useEffect(() => {
@@ -120,13 +140,13 @@ const Register: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (formData.country) {
-      const stateList = State.getStatesOfCountry(formData.country);
+    if (allData.country) {
+      const stateList = State.getStatesOfCountry(allData.country);
       setStates(stateList);
     } else {
       setStates([]);
     }
-  }, [formData.country]);
+  }, [allData.country]);
 
   return (
     <div className="w-screen">
@@ -234,7 +254,7 @@ const Register: React.FC = () => {
                     label="Name"
                     placeholder="John Snow"
                     type="text"
-                    value={formData.name}
+                    value={allData.name}
                     onChange={(e) => updateFormData({ name: e.target.value })}
                   />
 
@@ -242,7 +262,7 @@ const Register: React.FC = () => {
                     label="Date of birth"
                     placeholder="01/01/2022"
                     type="date"
-                    value={formData.dateOfBirth}
+                    value={allData.dateOfBirth}
                     onChange={(e) =>
                       updateFormData({ dateOfBirth: e.target.value })
                     }
@@ -252,7 +272,7 @@ const Register: React.FC = () => {
                     <label htmlFor="country">Country</label>
                     <select
                       id="country"
-                      value={formData.country}
+                      value={allData.country}
                       onChange={(e) =>
                         updateFormData({ country: e.target.value })
                       }
@@ -274,7 +294,7 @@ const Register: React.FC = () => {
                     <label htmlFor="state">State</label>
                     <select
                       id="state"
-                      value={formData.state}
+                      value={allData.state}
                       onChange={(e) =>
                         updateFormData({ state: e.target.value })
                       }
@@ -293,7 +313,7 @@ const Register: React.FC = () => {
                     label="Username"
                     placeholder="At least 6 characters"
                     type="text"
-                    value={formData.username}
+                    value={allData.username}
                     onChange={(e) =>
                       updateFormData({ username: e.target.value })
                     }
@@ -303,7 +323,7 @@ const Register: React.FC = () => {
                     label="Email"
                     placeholder="name@website.com"
                     type="email"
-                    value={formData.email}
+                    value={allData.email}
                     onChange={(e) => updateFormData({ email: e.target.value })}
                   />
 
@@ -311,7 +331,7 @@ const Register: React.FC = () => {
                     label="Password"
                     placeholder="At least 8 characters"
                     type="text"
-                    value={formData.password}
+                    value={allData.password}
                     onChange={(e) =>
                       updateFormData({ password: e.target.value })
                     }
@@ -321,7 +341,7 @@ const Register: React.FC = () => {
                     label="Confirm password"
                     placeholder="At least 8 characters"
                     type="text"
-                    value={formData.confirmPassword}
+                    value={allData.confirmPassword}
                     onChange={(e) =>
                       updateFormData({ confirmPassword: e.target.value })
                     }
@@ -440,8 +460,8 @@ const Register: React.FC = () => {
                             <input
                               type="file"
                               onChange={(event) => {
-                                event.preventDefault();
-                                handleFileChange(event);
+                                // event.preventDefault();
+                                handleFileChange(event, key_images);
                               }}
                               className="text-[13px] absolute left-[-30px] opacity-0"
                             />
