@@ -16,11 +16,12 @@ interface FormDataType {
   email: string;
   password: string;
   confirmPassword: string;
-  // sexIdent: string;
-  // sexPref: string;
-  // recailPref: string;
-  // meeting: string;
-  image: { [key: number]: string };
+  sexIdent: string;
+  sexPref: string;
+  recailPref: string;
+  meeting: string;
+  hobbies: string;
+  image: { url: string; publicId: string }[];
 }
 
 export const FormContext = createContext<FormContextType | any>(undefined);
@@ -42,11 +43,12 @@ export const FormRegister: React.FC<{ children: ReactNode }> = ({
     email: "",
     password: "",
     confirmPassword: "",
-    // sexIdent: "",
-    // sexPref: "",
-    // recailPref: "",
-    // meeting: "",
-    image: { 1: "", 2: "", 3: "", 4: "", 5: "" },
+    sexIdent: "",
+    sexPref: "",
+    recailPref: "",
+    meeting: "",
+    hobbies: "",
+    image: [],
   });
 
   const updateFormData = (newData: Partial<FormDataType>) => {

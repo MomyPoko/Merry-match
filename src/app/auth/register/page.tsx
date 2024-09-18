@@ -5,7 +5,6 @@ import { Country, State } from "country-state-city";
 // import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFormContext, FormRegister } from "@/app/context/register/Register";
-import { Result } from "postcss";
 
 interface PropsInput {
   label: string;
@@ -72,18 +71,21 @@ const Register: React.FC = () => {
     const file = e.target.files?.[0];
 
     if (file) {
-      setAvatarImage((prevImages) => ({
-        ...prevImages,
-        [key_images]: file,
-      }));
-      console.log("check avatarimage", avatarImage);
+      setAvatarImage((prevImages) => {
+        const updatedImages = { ...prevImages, [key_images]: file };
+        // console.log("check avatarimage", updatedImages);
+        return updatedImages;
+      });
     }
   };
 
   const handleDeleteImage = (key_images: string) => {
-    const afterDeleteImage = { ...avatarImage };
-    afterDeleteImage[key_images] = "";
-    setAvatarImage(afterDeleteImage);
+    setAvatarImage((prevImages) => {
+      const updatedImages = { ...prevImages };
+      updatedImages[key_images] = "";
+      // console.log("check avatarimage", updatedImages);
+      return updatedImages;
+    });
   };
 
   const handleNext = () => {
@@ -110,6 +112,11 @@ const Register: React.FC = () => {
     results.append("dateOfBirth", allData.dateOfBirth);
     results.append("country", getCountryName(allData.country));
     results.append("state", getStateName(allData.state));
+    results.append("sexIdent", allData.sexIdent);
+    results.append("sexPref", allData.sexPref);
+    results.append("recailPref", allData.recailPref);
+    results.append("meeting", allData.meeting);
+    results.append("hobbies", allData.hobbies);
     Object.keys(avatarImage).forEach((key_image) => {
       if (
         avatarImage[key_image] &&
@@ -120,18 +127,19 @@ const Register: React.FC = () => {
       // console.log(avatarImage[key_image]);
     });
 
-    console.log("result check", allData);
+    // console.log("result check client", allData);
 
     try {
-      const results_data = await axios.post(`/api/auth/register`, results, {
+      const response = await axios.post(`/api/auth/register`, results, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      console.log("User registered:", results_data.data);
+
+      console.log("User registered:", response.data);
     } catch (error) {
       console.log("Can't register now error", error);
     }
-    console.log("Form submitted:", results);
-    // router.push("/auth/login");
+    // console.log("Form submitted:", results);
+    router.push("/auth/login");
   };
 
   useEffect(() => {
@@ -359,7 +367,14 @@ const Register: React.FC = () => {
                 <div className="w-full grid grid-cols-2 gap-[40px]">
                   <div className="flex flex-col gap-[4px]">
                     <div>Sexual Identities</div>
-                    <select className="w-[100%] h-[50px] border-[1px] border-[black] rounded-[8px]">
+                    <select
+                      id="sexualIden"
+                      value={allData.sexIdent}
+                      onChange={(e) =>
+                        updateFormData({ sexIdent: e.target.value })
+                      }
+                      className="w-[100%] h-[50px] border-[1px] border-[black] rounded-[8px]"
+                    >
                       <option value="">Sexual</option>
                       <option>Male</option>
                       <option>Female</option>
@@ -369,8 +384,16 @@ const Register: React.FC = () => {
 
                   <div className="flex flex-col gap-[4px]">
                     <div>Sexual preferences</div>
-                    <select className="w-[100%] h-[50px] border-[1px] border-[black] rounded-[8px]">
+                    <select
+                      id="sexualPref"
+                      value={allData.sexPref}
+                      onChange={(e) => {
+                        updateFormData({ sexPref: e.target.value });
+                      }}
+                      className="w-[100%] h-[50px] border-[1px] border-[black] rounded-[8px]"
+                    >
                       <option value="">Sexual</option>
+                      <option>All Genders</option>
                       <option>Male</option>
                       <option>Female</option>
                       <option>Other</option>
@@ -379,7 +402,14 @@ const Register: React.FC = () => {
 
                   <div className="flex flex-col gap-[4px]">
                     <div>Racial preferences</div>
-                    <select className="w-[100%] h-[50px] border-[1px] border-[black] rounded-[8px]">
+                    <select
+                      id="racialPref"
+                      value={allData.recailPref}
+                      onChange={(e) => {
+                        updateFormData({ recailPref: e.target.value });
+                      }}
+                      className="w-[100%] h-[50px] border-[1px] border-[black] rounded-[8px]"
+                    >
                       <option value="">Types</option>
                       <option>Any Race/Ethnicity</option>
                       <option>Caucasian/White</option>
@@ -395,7 +425,14 @@ const Register: React.FC = () => {
 
                   <div className="flex flex-col gap-[4px]">
                     <div>Meeting interests</div>
-                    <select className="w-[100%] h-[50px] border-[1px] border-[black] rounded-[8px]">
+                    <select
+                      id="Meeting"
+                      value={allData.meeting}
+                      onChange={(e) => {
+                        updateFormData({ meeting: e.target.value });
+                      }}
+                      className="w-[100%] h-[50px] border-[1px] border-[black] rounded-[8px]"
+                    >
                       <option value="">Meeting Types</option>
                       <option>Outdoor Activities</option>
                       <option>Social Events</option>
@@ -413,6 +450,11 @@ const Register: React.FC = () => {
                   <div className="col-span-2 flex flex-col gap-[4px]">
                     <div>Hobbies / Interests (Maximum 10)</div>
                     <input
+                      id="hobbies"
+                      value={allData.hobbies}
+                      onChange={(e) => {
+                        updateFormData({ hobbies: e.target.value });
+                      }}
                       className="h-[50px] border-[1px] border-[black] rounded-[8px]"
                       type="text"
                     />

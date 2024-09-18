@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { type } from "os";
 
 const userSchema = new Schema(
   {
@@ -30,6 +31,26 @@ const userSchema = new Schema(
     dateOfBirth: {
       type: Date,
       required: false,
+    },
+    sexIdent: {
+      type: String,
+      require: false,
+    },
+    sexPref: {
+      type: String,
+      require: false,
+    },
+    recailPref: {
+      type: String,
+      require: false,
+    },
+    meeting: {
+      type: String,
+      require: false,
+    },
+    hobbies: {
+      type: String,
+      require: false,
     },
     image: [
       {
