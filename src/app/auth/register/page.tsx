@@ -1,10 +1,13 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { Country, State } from "country-state-city";
+
 // import Link from "next/link";
+import axios from "axios";
+import React, { useState, useEffect } from "react";
+import { Country, State } from "country-state-city";
 import { useRouter } from "next/navigation";
 import { useFormContext, FormRegister } from "@/app/context/register/Register";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface PropsInput {
   label: string;
@@ -160,11 +163,11 @@ const Register: React.FC = () => {
     <div className="w-screen">
       <form
         onSubmit={handleSubmit}
-        className="border-[1px] border-[red] h-screen flex flex-col justify-between"
+        className="h-screen flex flex-col justify-between"
       >
         <div className="flex flex-col justify-center items-center">
           <div
-            className={`border-[purple] border-[2px] w-[65%] flex flex-col justify-center items-center gap-[40px] ${
+            className={`w-[65%] flex flex-col justify-center items-center gap-[40px] ${
               currentStep === 1
                 ? "mt-[120px]"
                 : currentStep === 2
@@ -174,7 +177,7 @@ const Register: React.FC = () => {
                 : ""
             }`}
           >
-            <div className="border-[blue] border-[1px] w-full flex justify-between">
+            <div className="w-full flex justify-between">
               <div className="flex flex-col">
                 <div>REGISTER</div>
                 <div className="w-[80%] text-[46px] text-purple-500 font-bold">
@@ -253,7 +256,7 @@ const Register: React.FC = () => {
             </div>
 
             {currentStep === 1 && (
-              <div className="border-[1px] w-full flex flex-col gap-[24px]">
+              <div className="w-full flex flex-col gap-[24px]">
                 <div className="text-[24px] text-purple-500">
                   Basic Information
                 </div>
@@ -521,7 +524,7 @@ const Register: React.FC = () => {
         {currentStep === 1 && (
           <div className="h-[100px] px-[200px] border-[1px] align-bottom flex justify-between items-center">
             <div>1/3</div>
-            <div>
+            <div className="flex gap-[24px]">
               <button onClick={handleBack} disabled>
                 Back
               </button>
@@ -537,7 +540,7 @@ const Register: React.FC = () => {
         {currentStep === 2 && (
           <div className="h-[100px] px-[200px] border-[1px] flex justify-between items-center">
             <div>2/3</div>
-            <div>
+            <div className="flex gap-[24px]">
               <button onClick={handleBack}>Back</button>
               <button
                 onClick={handleNext}
@@ -552,9 +555,8 @@ const Register: React.FC = () => {
         {currentStep === 3 && (
           <div className="h-[100px] px-[200px] border-[1px] flex justify-between items-center">
             <div>3/3</div>
-            <div>
+            <div className="flex gap-[24px]">
               <button onClick={handleBack}>Back</button>
-
               <button
                 type="submit"
                 className="bg-red-500 p-[12px_24px_12px_24px] text-white rounded-[99px]"
