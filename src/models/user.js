@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { type } from "os";
 
 const userSchema = new Schema(
   {
@@ -13,7 +14,7 @@ const userSchema = new Schema(
     email: {
       type: String,
       required: true,
-      unique: false,
+      unique: true,
     },
     password: {
       type: String,
@@ -29,15 +30,41 @@ const userSchema = new Schema(
     },
     dateOfBirth: {
       type: Date,
-      required: true,
+      required: false,
     },
+    sexIdent: {
+      type: String,
+      require: false,
+    },
+    sexPref: {
+      type: String,
+      require: false,
+    },
+    recailPref: {
+      type: String,
+      require: false,
+    },
+    meeting: {
+      type: String,
+      require: false,
+    },
+    hobbies: {
+      type: String,
+      require: false,
+    },
+    image: [
+      {
+        url: { type: String },
+        publicId: { type: String },
+      },
+    ],
     role: {
       type: String,
       required: false,
       default: "user",
     },
   },
-  { timestamps: true }
+  { timestampsz: true }
 );
 
 export default mongoose.models.User || mongoose.model("User", userSchema);

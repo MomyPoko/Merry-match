@@ -6,3 +6,9 @@
   width: 300px;
   border: 1px solid black;
 }
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+}
