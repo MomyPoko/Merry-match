@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { uploadToCloudinary } from "@/utils/upload_Files";
 import "dotenv/config";
 
-const POST = async (req: NextRequest) => {
+export const POST = async (req: NextRequest) => {
   try {
     await connectMongoDB();
 
@@ -95,5 +95,3 @@ const POST = async (req: NextRequest) => {
     );
   }
 };
-
-export default POST;
