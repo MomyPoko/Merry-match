@@ -23,7 +23,7 @@ export const POST = async (req: NextRequest) => {
     const dateOfBirth = formData.get("dateOfBirth");
     const sexIdent = formData.get("sexIdent");
     const sexPref = formData.get("sexPref");
-    const recailPref = formData.get("racailPref");
+    const racailPref = formData.get("racailPref");
     const meeting = formData.get("meeting");
     const hobbies = formData.get("hobbies");
     const image = formData.getAll("image") as unknown as File[];
@@ -72,7 +72,7 @@ export const POST = async (req: NextRequest) => {
       dateOfBirth,
       sexIdent,
       sexPref,
-      recailPref,
+      racailPref,
       meeting,
       hobbies,
       image: uploadedImages,

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar/Navbar";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const nunito = Nunito({ subsets: ["latin"] });
 
@@ -20,6 +22,7 @@ export default function RootLayout({
       <body className={nunito.className}>
         <Navbar />
         <div>{children}</div>
+        <ToastContainer position="top-center" />
       </body>
     </html>
   );

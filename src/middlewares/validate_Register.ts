@@ -10,7 +10,11 @@ export async function validateRegister(req: NextRequest) {
   const name = formData.get("name") as string;
   const dateOfBirth = formData.get("dateOfBirth") as string;
   const country = formData.get("country") as string;
-  const state = formData.get("state") as string;
+  const sexIdent = formData.get("sexIdent") as string;
+  const sexPref = formData.get("sexPref") as string;
+  const racailPref = formData.get("racailPref") as string;
+  const meeting = formData.get("meeting") as string;
+  const hobbies = formData.get("hobbies") as string;
 
   if (
     !email ||
@@ -19,7 +23,11 @@ export async function validateRegister(req: NextRequest) {
     !name ||
     !dateOfBirth ||
     !country ||
-    !state
+    !sexIdent ||
+    !sexPref ||
+    !racailPref ||
+    !meeting ||
+    !hobbies
   ) {
     return NextResponse.json(
       { error: "All fields are required", formData },

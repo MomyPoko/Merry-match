@@ -22,11 +22,11 @@ const userSchema = new Schema(
     },
     country: {
       type: String,
-      required: true,
+      required: false,
     },
     state: {
       type: String,
-      required: true,
+      required: false,
     },
     dateOfBirth: {
       type: Date,
