@@ -1,4 +1,9 @@
+"use client";
+
+import Link from "next/link";
 import Footer from "@/components/footer/Footer";
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 const cardData = [
   {
@@ -20,6 +25,11 @@ const cardData = [
 ];
 
 export default function Home() {
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === "loading") return;
+  }, [status]);
   return (
     <div className="pt-[88px] w-full">
       <div className="relative w-full h-[758px] bg-BG flex justify-center">
@@ -49,9 +59,11 @@ export default function Home() {
             </div>
           </div>
 
-          <button className="p-[12px_24px_12px_24px] font-[700] bg-[#C70039] rounded-[99px] active:scale-95">
-            Start matching!
-          </button>
+          <Link href="/matching">
+            <button className="p-[12px_24px_12px_24px] font-[700] bg-[#C70039] rounded-[99px] active:scale-95">
+              Start matching!
+            </button>
+          </Link>
         </div>
       </div>
       <div
@@ -118,17 +130,20 @@ export default function Home() {
           <img
             src="/images/emoji-background2.png"
             alt="emoji-background2"
-            className="absolute w-full"
+            className="absolute w-full z-0"
           />
           <div
-            className="w-[590px] text-[46px] text-white text-center font-[800]"
+            className="relative z-10 w-[590px] text-[46px] text-white text-center font-[800]"
             style={{ letterSpacing: "-0.02em" }}
           >
             Let’s start finding <br /> and matching someone new
           </div>
-          <button className="p-[12px_24px_12px_24px] text-red-600 font-[700] bg-red-100 rounded-[99px] z-10 active:scale-95">
-            Start matching!
-          </button>
+
+          <Link href="/matching" className="relative z-10">
+            <button className="p-[12px_24px_12px_24px] text-red-600 font-[700] bg-red-100 rounded-[99px] active:scale-95">
+              Start matching!
+            </button>
+          </Link>
         </div>
       </div>
       <Footer />
