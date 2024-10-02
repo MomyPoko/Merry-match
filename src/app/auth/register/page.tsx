@@ -9,7 +9,6 @@ import { useFormContext, FormRegister } from "@/app/context/register/Register";
 import { toast } from "react-toastify";
 import { FaArrowLeft } from "react-icons/fa";
 import "react-toastify/dist/ReactToastify.css";
-import { DiVim } from "react-icons/di";
 
 interface PropsInput {
   label: string;

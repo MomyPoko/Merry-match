@@ -49,7 +49,7 @@ const Login = () => {
     }
 
     if (response?.error) {
-      setErrors({ email: "Invalid Credentials" });
+      setErrors({ email: "Your email not found" });
     } else if (response?.ok) {
       router.push("/");
     }
