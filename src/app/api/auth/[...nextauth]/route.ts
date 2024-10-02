@@ -3,9 +3,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import User from "../../../../models/user";
 import bcrypt from "bcrypt";
 import { connectMongoDB } from "../../../../utils/mongodb";
-import { Session } from "inspector";
-import { signIn } from "next-auth/react";
-import { newDate } from "react-datepicker/dist/date_utils";
+// import { Session } from "inspector";
+// import { signIn } from "next-auth/react";
+// import { newDate } from "react-datepicker/dist/date_utils";
 
 interface Credentials {
   email: string;
