@@ -24,7 +24,7 @@ const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       id: "credentials",
-      name: "Credentials",
+      name: "credentials",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
@@ -66,7 +66,7 @@ const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  session: { strategy: "jwt", maxAge: 1 * 60 * 60 },
+  session: { strategy: "jwt", maxAge: 1 * 15 * 60 },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
