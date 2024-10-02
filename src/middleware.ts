@@ -5,7 +5,7 @@ import { getToken } from "next-auth/jwt";
 const secret = process.env.NEXTAUTH_SECRET;
 
 // ฟังก์ชันเช็คว่า token หมดอายุหรือไม่
-function isTokenExpired(token) {
+function isTokenExpired(token: any) {
   const expiry = token.exp; // ค่าที่มาจาก token
   return Date.now() >= expiry * 1000; // เปลี่ยนเป็น milliseconds
 }

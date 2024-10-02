@@ -5,26 +5,27 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const Navbar = () => {
-  const { data: session, status } = useSession();
-
+const Navbar = ({ session }: { session: any }) => {
+  const { data: clientSession, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      // ถ้าไม่มี session ให้ redirect ไปหน้า login
-      router.push("/auth/login");
+    if (!session && status === "authenticated") {
+      router.push("/");
+      if (!session && status === "unauthenticated") {
+        router.push("/auth/login"); // redirect เมื่อ token หมด
+      }
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
-  console.log("Session status: ", status, "Session data: ", session);
+  console.log("Session status: ", status, "Session data: ", clientSession);
   return (
     <div className="fixed z-10 border-[1px] w-full h-[88px] bg-white flex flex-row justify-around items-center gap-[500px]">
       <Link href="/">
         <img src="/images/logo.png" alt="logo" className="w-[220px]" />
       </Link>
 
-      {!session ? (
+      {!clientSession ? (
         <div className="flex items-center gap-[32px]">
           <Link
             href="/#Why-Merry-Match"
@@ -40,11 +41,14 @@ const Navbar = () => {
             <span>How to Merry</span>
           </Link>
 
-          <Link href="/auth/login">
-            <button className="p-[12px_24px_12px_24px] text-white text-[16px] font-[700] rounded-[99px] bg-red-500 active:scale-95">
-              Login
-            </button>
-          </Link>
+          <button
+            onClick={() => {
+              router.push("/auth/login");
+            }}
+            className="p-[12px_24px_12px_24px] text-white text-[16px] font-[700] rounded-[99px] bg-red-500 active:scale-95"
+          >
+            Login
+          </button>
         </div>
       ) : (
         <div className="flex items-center gap-[32px]">
@@ -55,12 +59,14 @@ const Navbar = () => {
             <span>Start Matching!</span>
           </Link>
 
-          <Link
-            href="/#How-to-Merry"
+          <span
+            onClick={() => {
+              router.push("/matching");
+            }}
             className="text-purple-800 text-[16px] font-[700]"
           >
-            <span>Merry Membership</span>
-          </Link>
+            Merry Membership
+          </span>
 
           <button onClick={() => signOut()}>Logout</button>
         </div>

@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import Footer from "@/components/footer/Footer";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const cardData = [
   {
@@ -26,10 +26,22 @@ const cardData = [
 
 export default function Home() {
   const { data: session, status } = useSession();
+  const router = useRouter();
+
+  const handleStartMatching = () => {
+    if (status === "authenticated") {
+      // หากผู้ใช้ล็อกอินอยู่แล้ว ให้นำไปที่หน้า matching
+      router.push("/matching");
+    } else {
+      // หากผู้ใช้ยังไม่ได้ล็อกอิน ให้นำไปที่หน้า login
+      router.push("/auth/login");
+    }
+  };
 
   useEffect(() => {
     if (status === "loading") return;
   }, [status]);
+
   return (
     <div className="pt-[88px] w-full">
       <div className="relative w-full h-[758px] bg-BG flex justify-center">
@@ -59,11 +71,12 @@ export default function Home() {
             </div>
           </div>
 
-          <Link href="/matching">
-            <button className="p-[12px_24px_12px_24px] font-[700] bg-[#C70039] rounded-[99px] active:scale-95">
-              Start matching!
-            </button>
-          </Link>
+          <button
+            onClick={handleStartMatching}
+            className="p-[12px_24px_12px_24px] font-[700] bg-[#C70039] rounded-[99px] active:scale-95"
+          >
+            Start matching!
+          </button>
         </div>
       </div>
       <div
@@ -139,11 +152,12 @@ export default function Home() {
             Let’s start finding <br /> and matching someone new
           </div>
 
-          <Link href="/matching" className="relative z-10">
-            <button className="p-[12px_24px_12px_24px] text-red-600 font-[700] bg-red-100 rounded-[99px] active:scale-95">
-              Start matching!
-            </button>
-          </Link>
+          <button
+            onClick={handleStartMatching}
+            className="relative z-10 p-[12px_24px_12px_24px] text-red-600 font-[700] bg-red-100 rounded-[99px] active:scale-95"
+          >
+            Start matching!
+          </button>
         </div>
       </div>
       <Footer />
