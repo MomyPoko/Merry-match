@@ -10,14 +10,18 @@ const Navbar = ({ session }: { session: any }) => {
   const router = useRouter();
 
   useEffect(() => {
-    if (!session && status === "authenticated") {
-      router.push("/");
-      if (!session && status === "unauthenticated") {
-        router.push("/auth/login"); // redirect เมื่อ token หมด
+    if (status === "loading") {
+      // หากยังโหลดอยู่ ไม่ต้องทำอะไร
+      return;
+    }
+
+    if (!session) {
+      // ถ้าไม่มี session
+      if (status === "authenticated") {
+        router.push("/"); // ผู้ใช้ล็อกอินแล้ว ให้ไปหน้าโฮม
       }
     }
   }, [status, session, router]);
-
   console.log("Session status: ", status, "Session data: ", clientSession);
   return (
     <div className="fixed z-10 border-[1px] w-full h-[88px] bg-white flex flex-row justify-around items-center gap-[500px]">
