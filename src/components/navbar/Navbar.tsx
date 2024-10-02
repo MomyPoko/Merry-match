@@ -52,12 +52,14 @@ const Navbar = ({ session }: { session: any }) => {
         </div>
       ) : (
         <div className="flex items-center gap-[32px]">
-          <Link
-            href="/#Why-Merry-Match"
+          <span
+            onClick={() => {
+              router.push("/matching");
+            }}
             className="text-purple-800 text-[16px] font-[700]"
           >
-            <span>Start Matching!</span>
-          </Link>
+            Start Matching!
+          </span>
 
           <span
             onClick={() => {

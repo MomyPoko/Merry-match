@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { AuthOptions, DefaultSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import User from "../../../../models/user";
 import bcrypt from "bcrypt";
@@ -7,8 +7,20 @@ import { Session } from "inspector";
 import { signIn } from "next-auth/react";
 import { newDate } from "react-datepicker/dist/date_utils";
 
-export const authOptions: any = {
-  // Configure one or more authentication providers
+interface Credentials {
+  email: string;
+  password: string;
+}
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+    } & DefaultSession["user"];
+  }
+}
+
+export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       id: "credentials",
@@ -17,7 +29,12 @@ export const authOptions: any = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials: any) {
+      async authorize(credentials: Credentials | undefined) {
+        if (!credentials?.email || !credentials?.password) {
+          // หากไม่มี email หรือ password ให้ return null
+          return null;
+        }
+
         await connectMongoDB();
         try {
           const user = await User.findOne({ email: credentials.email });
@@ -62,10 +79,12 @@ export const authOptions: any = {
       console.log("Check user JWT: ", user);
       return token;
     },
-    async sessionStorage({ session, token }) {
-      session.user.id = token.sub;
-      session.user.email = token.email;
-      session.user.name = token.name;
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.sub as string;
+        session.user.email = token.email;
+        session.user.name = token.name;
+      }
       // session.expires = new Date(token.exp * 1000).toISOString();
 
       console.log("Check session sessionStorage: ", session);
@@ -73,7 +92,7 @@ export const authOptions: any = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-  page: { signIn: "/auth/login" },
+  pages: { signIn: "/auth/login" },
 };
 
 const handler = NextAuth(authOptions);
