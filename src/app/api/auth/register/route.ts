@@ -35,7 +35,6 @@ export const POST = async (req: NextRequest) => {
     });
 
     // การอัปโหลดไฟล์
-
     const uploadedImages: { url: string; publicId: string }[] = [];
 
     for (const image_data of image) {
@@ -95,18 +94,3 @@ export const POST = async (req: NextRequest) => {
     );
   }
 };
-
-// export const GET = async (req: NextRequest) => {
-//   try {
-//     await connectMongoDB(); // เชื่อมต่อ MongoDB
-
-//     const users = await User.find(); // ดึงข้อมูลผู้ใช้ทั้งหมด
-//     return NextResponse.json(users, { status: 200 }); // ส่งข้อมูลกลับ
-//   } catch (error) {
-//     console.log("Error fetching users: ", error);
-//     return NextResponse.json(
-//       { message: "Failed to fetch users" },
-//       { status: 500 }
-//     );
-//   }
-// };

@@ -62,8 +62,13 @@ const userSchema = new Schema(
       required: false,
       default: "user",
     },
+    packages: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Package", // connect collection 'Package'
+      default: null, // ค่าเริ่มต้นคือ null (ยังไม่มี package)
+    },
   },
-  { timestampsz: true }
+  { timestamps: true }
 );
 
 export default mongoose.models.User || mongoose.model("User", userSchema);

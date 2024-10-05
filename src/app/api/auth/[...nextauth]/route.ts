@@ -37,7 +37,9 @@ const authOptions: NextAuthOptions = {
 
         await connectMongoDB();
         try {
-          const user = await User.findOne({ email: credentials.email });
+          const user = await User.findOne({
+            email: credentials.email,
+          });
           console.log("check user response: ", user);
 
           if (!user) {
