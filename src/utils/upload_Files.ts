@@ -8,25 +8,33 @@ cloudinary.config({
 });
 
 export const uploadToCloudinary = async (filePath: File, folder: string) => {
-  const buffer = await filePath.arrayBuffer();
-  const byte = Buffer.from(buffer);
+  try {
+    const buffer = await filePath.arrayBuffer();
+    const byte = Buffer.from(buffer);
 
-  return new Promise<{ url: string; publicId: string }>(
-    async (resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(
-          { resource_type: "auto", folder: folder },
-          async (err, result) => {
-            if (err) {
-              return reject(err.message);
+    return new Promise<{ url: string; publicId: string }>(
+      async (resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            { resource_type: "auto", folder: folder },
+            async (err, result) => {
+              if (err) {
+                return reject(err.message); // ตรวจสอบว่ามีข้อผิดพลาดหรือไม่
+              }
+              if (!result) {
+                return reject("Upload failed, no result from Cloudinary.");
+              }
+              return resolve({
+                url: result.secure_url || "",
+                publicId: result.public_id || "",
+              });
             }
-            return resolve({
-              url: result?.secure_url || "",
-              publicId: result?.public_id || "",
-            });
-          }
-        )
-        .end(byte);
-    }
-  );
+          )
+          .end(byte); // ส่งข้อมูลไปยัง Cloudinary
+      }
+    );
+  } catch (error) {
+    console.error("Error during file upload:", error);
+    throw new Error(`File upload failed: ${error}`);
+  }
 };

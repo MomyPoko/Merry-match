@@ -16,6 +16,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
+      image: Array<{ url: string; publicId: string }>;
     } & DefaultSession["user"];
   }
 }
@@ -77,8 +78,8 @@ const authOptions: NextAuthOptions = {
         token.name = user.name;
       }
 
-      console.log("Check token JWT: ", token);
-      console.log("Check user JWT: ", user);
+      // console.log("Check token JWT: ", token);
+      // console.log("Check user JWT: ", user);
       return token;
     },
     async session({ session, token }) {
@@ -89,7 +90,7 @@ const authOptions: NextAuthOptions = {
       }
       // session.expires = new Date(token.exp * 1000).toISOString();
 
-      console.log("Check session sessionStorage: ", session);
+      // console.log("Check session sessionStorage: ", session);
       return session;
     },
   },
