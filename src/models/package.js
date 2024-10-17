@@ -4,11 +4,14 @@ const packageSchema = new Schema({
   type_package: {
     type: String,
     required: false,
-    enum: ["basic", "platinum", "premium"],
   },
   price: {
     type: Number,
-    required: true,
+    required: false,
+  },
+  merry_limit: {
+    type: Number,
+    required: false,
   },
 });
 

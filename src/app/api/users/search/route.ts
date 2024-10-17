@@ -7,15 +7,6 @@ import mongoose from "mongoose";
 
 mongoose.set("strictPopulate", false);
 
-const getAllUsersWithPackage = async () => {
-  const users = await User.find().populate("packages").lean();
-
-  return users.map((user) => ({
-    ...user,
-    packages: user.packages || null, // ถ้าไม่มี package ให้ตั้งค่าเป็น null
-  }));
-};
-
 const getUserByKeyValue = async (key: any) => {
   const user = await User.findOne({
     $or: [{ name: key }, { username: key }],
@@ -29,12 +20,11 @@ const getUserByKeyValue = async (key: any) => {
 export const GET = async (req: NextRequest) => {
   try {
     await connectMongoDB();
-
     const { searchParams } = new URL(req.url);
-    const key = searchParams.get("name") || searchParams.get("username");
+    const params_key = searchParams.get("name") || searchParams.get("username");
 
-    if (key) {
-      const user = await getUserByKeyValue(key);
+    if (params_key) {
+      const user = await getUserByKeyValue(params_key);
       if (user) {
         return NextResponse.json(user, { status: 200 });
       } else {
@@ -44,10 +34,6 @@ export const GET = async (req: NextRequest) => {
         );
       }
     }
-
-    const usersWithPackage = await getAllUsersWithPackage();
-
-    return NextResponse.json(usersWithPackage, { status: 200 });
   } catch (error) {
     console.log("Error fetching users: ", error);
     return NextResponse.json(

@@ -41,7 +41,7 @@ const authOptions: NextAuthOptions = {
           const user = await User.findOne({
             email: credentials.email,
           });
-          console.log("check user response: ", user);
+          // console.log("check user response: ", user);
 
           if (!user) {
             return null;

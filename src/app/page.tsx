@@ -43,24 +43,24 @@ export default function Home() {
   }, [status]);
 
   return (
-    <div className="pt-[88px] w-full">
-      <div className="relative w-full h-[758px] bg-BG flex justify-center">
+    <div className="p-0 m-0">
+      <div className="relative pt-[88px] h-[758px] bg-BG flex justify-center">
         <img
           src="/images/emoji-background1.png"
           alt="emoji-background1"
-          className="absolute w-[1600px] left-0 top-[10%]"
+          className="absolute w-full max-w-full left-0 top-[10%]"
         />
         <img
           src="/images/image-firstpage1.png"
           alt="image-firstpage1"
-          className="absolute left-[70%]"
+          className="absolute max-w-full left-[70%]"
         />
         <img
           src="/images/image-firstpage2.png"
           alt="image-firstpage2"
-          className="absolute left-[10%] bottom-0"
+          className="absolute max-w-full left-[10%] bottom-0"
         />
-        <div className="absolute w-[360px] text-white flex flex-col justify-center items-center gap-[60px] top-[20%]">
+        <div className="absolute w-[360px] text-white flex flex-col justify-center items-center gap-[60px] top-[25%]">
           <div className="flex flex-col justify-center items-center gap-[24px]">
             <div className="text-[60px] text-center font-[900]">
               Make the first ‘Merry’
@@ -81,7 +81,7 @@ export default function Home() {
       </div>
       <div
         id="Why-Merry-Match"
-        className="w-full h-[533px] bg-BG flex justify-center items-center"
+        className="h-[533px] bg-BG flex justify-center items-center"
       >
         <div className="flex gap-[30px]">
           <div className="w-[550px] flex flex-col gap-[40px]">
@@ -105,12 +105,16 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <img src="/images/image-background1.png" alt="image-background1" />
+          <img
+            src="/images/image-background1.png"
+            alt="image-background1"
+            className="max-w-full"
+          />
         </div>
       </div>
       <div
         id="How-to-Merry"
-        className="w-full h-[622px] bg-BG flex justify-center items-center"
+        className="h-[622px] bg-BG flex justify-center items-center"
       >
         <div className="flex flex-col justify-center items-center gap-[40px]">
           <div className="text-[46px] text-purple-300 font-[800] leadind-[57px]">
@@ -138,7 +142,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <div className="w-full h-[570px] bg-BG flex justify-center items-center">
+      <div className="h-[570px] bg-BG flex justify-center items-center">
         <div className="relative w-[1200px] h-[370px] bg-gradient-to-l from-purple-500 to-red-600 rounded-[32px] flex flex-col justify-center items-center gap-[32px]">
           <img
             src="/images/emoji-background2.png"

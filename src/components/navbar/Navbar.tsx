@@ -33,9 +33,9 @@ const Navbar = ({ session }: { session: Session | null }) => {
       }
     }
   }, [status, session, router]);
-  console.log("Session status: ", status, "Session data: ", clientSession);
+  // console.log("Session status: ", status, "Session data: ", clientSession);
   return (
-    <div className="fixed z-10 border-[1px] w-full h-[88px] bg-white flex flex-row justify-around items-center gap-[500px]">
+    <div className="fixed z-10 px-[200px] border-[1px] w-full h-[88px] bg-white flex flex-row justify-between items-center">
       <Link href="/">
         <img src="/images/logo.png" alt="logo" className="w-[220px]" />
       </Link>
@@ -78,7 +78,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
 
           <button
             onClick={() => {
-              router.push("/matching");
+              router.push("/package");
             }}
             className="text-purple-800 text-[16px] font-[700]"
           >

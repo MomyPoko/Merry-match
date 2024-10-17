@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import Package from "@/models/package";
 
 const userSchema = new Schema(
   {

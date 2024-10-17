@@ -41,7 +41,7 @@ const Login = () => {
       redirect: false,
     });
 
-    console.log("Response client", response);
+    // console.log("Response client", response);
 
     if (!password) {
       setErrors({ password: "Password is invalid" });

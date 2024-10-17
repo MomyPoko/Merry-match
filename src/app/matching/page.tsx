@@ -5,7 +5,7 @@ const matchingPage = () => {
     <div className="w-screen h-screen flex ">
       <div className="pt-[88px] w-[20%] h-screen bg-gray-100">
         <div className="w-[100%] h-[259px] border-b-[1px] border-gray-300 flex justify-center items-center">
-          <button className="p-[24px] w-[282px] h-[187px] border-[1px] border-gray-400 text-center bg-gray-200 rounded-[16px] flex flex-col justify-center items-center gap-[4px] active:border-purple-500">
+          <button className="p-[24px] w-[282px] h-[187px] border-[1px] border-gray-400 text-center bg-gray-200 rounded-[16px] flex flex-col justify-center items-center gap-[4px]">
             <img
               src="/images/icon-findheart.png"
               alt="icon-findheart"
@@ -92,15 +92,44 @@ const matchingPage = () => {
                 Sex you interest
               </div>
               <div className="flex flex-col gap-[16px]">
-                <div className="text-[16px] font-[500] text-gray-700">
-                  Default
+                <div className="flex gap-[12px]">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-secondary"
+                  />
+                  <div className="text-[16px] font-[500] text-gray-700">
+                    Default
+                  </div>
                 </div>
-                <div className="text-[16px] font-[500] text-gray-700">Male</div>
-                <div className="text-[16px] font-[500] text-gray-700">
-                  Famale
+
+                <div className="flex gap-[12px]">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-secondary"
+                  />
+                  <div className="text-[16px] font-[500] text-gray-700">
+                    Male
+                  </div>
                 </div>
-                <div className="text-[16px] font-[500] text-gray-700">
-                  Other
+
+                <div className="flex gap-[12px]">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-secondary"
+                  />
+                  <div className="text-[16px] font-[500] text-gray-700">
+                    Female
+                  </div>
+                </div>
+
+                <div className="flex gap-[12px]">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-secondary"
+                  />
+                  <div className="text-[16px] font-[500] text-gray-700">
+                    Other
+                  </div>
                 </div>
               </div>
             </div>
