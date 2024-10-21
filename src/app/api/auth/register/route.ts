@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { connectMongoDB } from "../../../../utils/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { uploadToCloudinary } from "@/utils/upload_Files";
+import { differenceInYears } from "date-fns";
 import "dotenv/config";
 
 export const POST = async (req: NextRequest) => {
@@ -47,7 +48,23 @@ export const POST = async (req: NextRequest) => {
 
     data.image = uploadedImages;
 
+    const existingName = await User.findOne({ name });
+    const existingUsername = await User.findOne({ username });
     const existingUser = await User.findOne({ email });
+
+    if (existingName) {
+      return NextResponse.json(
+        { message: "Name is already in use." },
+        { status: 400 }
+      );
+    }
+
+    if (existingUsername) {
+      return NextResponse.json(
+        { message: "Username is already in use." },
+        { status: 400 }
+      );
+    }
 
     if (existingUser) {
       return NextResponse.json(
@@ -55,6 +72,16 @@ export const POST = async (req: NextRequest) => {
         {
           status: 400,
         }
+      );
+    }
+
+    const birthDate = new Date(dateOfBirth as string);
+    const currentAge = differenceInYears(new Date(), birthDate);
+
+    if (currentAge < 18) {
+      return NextResponse.json(
+        { message: "You must be at least 18 years old to register." },
+        { status: 400 }
       );
     }
 

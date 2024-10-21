@@ -38,7 +38,7 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json(
       {
         message: "Matching request created successfully",
-        matchingDetails: {
+        matching_data: {
           requester: {
             id: requester._id,
             username: requester.username,
