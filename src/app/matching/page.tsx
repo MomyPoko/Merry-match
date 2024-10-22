@@ -1,8 +1,14 @@
 "use client";
 
+import { Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
-import "swiper/swiper-bundle.css";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 const MatchingPage = () => {
   const [matchingId, setMatchingId] = useState(null);
@@ -10,6 +16,9 @@ const MatchingPage = () => {
   const [matchingStatus, setMatchingStatus] = useState("pending");
   const [sexPref, setSexpref] = useState<string | null>(null);
   const [dateOfBirth, setDateofbirth] = useState<string | null>(null);
+  const [activeIndex, setActiveIndex] = useState<Number>(1);
+
+  const { data: session } = useSession();
 
   const createMatching = async () => {
     try {
@@ -47,8 +56,10 @@ const MatchingPage = () => {
   };
 
   useEffect(() => {
-    getUserData();
-  }, [sexPref, dateOfBirth]);
+    if (session) {
+      getUserData();
+    }
+  }, [sexPref, dateOfBirth, session]);
 
   return (
     <div className="w-screen h-screen flex">
@@ -132,8 +143,34 @@ const MatchingPage = () => {
             </div>
           </div>
           <div className="pt-[88px] w-[65%] h-screen bg-BG">
-            <div className="w-full h-full bg-red-200/60 flex flex-col justify-center items-center">
-              carousel
+            <div className="relative w-full h-full bg-red-200/60 flex flex-col justify-center items-center">
+              <Swiper
+                modules={[Navigation, Pagination]}
+                slidesPerView={1.5}
+                spaceBetween={-140}
+                centeredSlides={true}
+                onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
+                className="w-[100%] h-[100%] bg-red-300/50"
+              >
+                {userData.map((data, index_images) => (
+                  <SwiperSlide key={index_images} className="carousel-slide">
+                    <div
+                      className={`flex w-full h-full items-center justify-center transition-transform duration-300 ease-in-out ${
+                        activeIndex === index_images
+                          ? "transform scale-110" // Zoom in the active slide
+                          : "transform scale-100 opacity-50" // Zoom out and dim the other slides
+                      }`}
+                    >
+                      <img
+                        key={index_images}
+                        src={data.image[0].url}
+                        alt={`Slide ${index_images + 1}`}
+                        className="w-[67%] h-[67%] rounded-[32px] block"
+                      />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
             </div>
             <div></div>
           </div>
