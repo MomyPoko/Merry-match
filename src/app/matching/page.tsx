@@ -2,8 +2,13 @@
 
 import { Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { FaArrowLeft } from "react-icons/fa6";
+import { FaArrowRight } from "react-icons/fa6";
+import { IoClose } from "react-icons/io5";
+import { IoHeart } from "react-icons/io5";
+import { AiFillEye } from "react-icons/ai";
 import axios from "axios";
 
 import "swiper/css";
@@ -16,17 +21,28 @@ const MatchingPage = () => {
   const [matchingStatus, setMatchingStatus] = useState("pending");
   const [sexPref, setSexpref] = useState<string | null>(null);
   const [dateOfBirth, setDateofbirth] = useState<string | null>(null);
-  const [activeIndex, setActiveIndex] = useState<Number>(1);
+  const [activeIndex, setActiveIndex] = useState<Number>(0);
+  const [hideButtons, setHideButtons] = useState<boolean[]>([]);
 
   const { data: session } = useSession();
+  const swiperRef = useRef(null);
 
   const createMatching = async () => {
     try {
-      const response = await axios.post("/api/matching", {
-        requesterUser: { id: "requester_id" },
-        receiverUser: { id: "receiver_id" },
+      const requesterUser = { id: session?.user?.id }; // ใช้ session เพื่อดึง id ของผู้ใช้งาน
+      const receiverUser = { id: userData[activeIndex]._id }; // ใช้ id ของผู้ใช้งานที่เลือกใน Swiper
+
+      const response = await axios.post("/api/matching/index", {
+        requesterUser,
+        receiverUser,
       });
       setMatchingId(response.data.matching_data._id);
+      setHideButtons((prev) => {
+        const updatedHideButtons = [...prev];
+        updatedHideButtons[activeIndex] = true; // ซ่อนปุ่มสำหรับการ์ดที่ถูกกด
+        return updatedHideButtons;
+      });
+      handleNextSlide();
       console.log("Mtaching created: ", response);
     } catch (error) {
       console.log("Error creating matching: ", error);
@@ -49,9 +65,26 @@ const MatchingPage = () => {
         params: { sexPref, dateOfBirth },
       });
       setUserData(response.data);
+      setHideButtons(Array(response.data.length).fill(false));
       console.log("Users data fetched: ", response.data);
     } catch (error) {
       console.log("Error fetching users data: ", error);
+    }
+  };
+
+  const handleRemoveUser = () => {
+    handleNextSlide();
+  };
+
+  const handleNextSlide = () => {
+    if (swiperRef.current && swiperRef.current.swiper) {
+      swiperRef.current.swiper.slideNext();
+    }
+  };
+
+  const handlePrevSlide = () => {
+    if (swiperRef.current && swiperRef.current.swiper) {
+      swiperRef.current.swiper.slidePrev();
     }
   };
 
@@ -59,7 +92,7 @@ const MatchingPage = () => {
     if (session) {
       getUserData();
     }
-  }, [sexPref, dateOfBirth, session]);
+  }, [sexPref, dateOfBirth, session, matchingStatus]);
 
   return (
     <div className="w-screen h-screen flex">
@@ -81,7 +114,7 @@ const MatchingPage = () => {
                 </div>
               </button>
             </div>
-            <div className="w-[100%] h-[194px] flex justify-center">
+            <div className="w-[100%] py-[24px] flex justify-center">
               <div className="w-[281px] h-full flex flex-col justify-center gap-[16px]">
                 <div className="text-[24px] text-gray-900 font-[700]">
                   Merry Match!
@@ -143,30 +176,78 @@ const MatchingPage = () => {
             </div>
           </div>
           <div className="pt-[88px] w-[65%] h-screen bg-BG">
-            <div className="relative w-full h-full bg-red-200/60 flex flex-col justify-center items-center">
+            <div className="w-full h-full flex flex-col justify-center items-center overflow-visible">
               <Swiper
-                modules={[Navigation, Pagination]}
-                slidesPerView={1.5}
-                spaceBetween={-140}
+                slidesPerView={1.75}
                 centeredSlides={true}
+                spaceBetween={200}
                 onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
-                className="w-[100%] h-[100%] bg-red-300/50"
+                ref={swiperRef}
+                className="w-[100%] h-[80%] overflow-visible"
               >
-                {userData.map((data, index_images) => (
-                  <SwiperSlide key={index_images} className="carousel-slide">
+                {userData.map((data, index_data) => (
+                  <SwiperSlide key={data.id} className="overflow-visible">
                     <div
-                      className={`flex w-full h-full items-center justify-center transition-transform duration-300 ease-in-out ${
-                        activeIndex === index_images
-                          ? "transform scale-110" // Zoom in the active slide
-                          : "transform scale-100 opacity-50" // Zoom out and dim the other slides
+                      className={`relative w-[110%] h-[90%] transition-all duration-500 ${
+                        activeIndex === index_data
+                          ? "scale-100 z-20"
+                          : "scale-90 z-10 opacity-30"
                       }`}
                     >
                       <img
-                        key={index_images}
                         src={data.image[0].url}
-                        alt={`Slide ${index_images + 1}`}
-                        className="w-[67%] h-[67%] rounded-[32px] block"
+                        alt={data.name}
+                        className="w-[100%] h-[100%] rounded-[32px]"
                       />
+
+                      <div className="absolute bottom-0 bg-gradient-to-t from-[#390741] to-[070941]/0 px-[6%] w-full h-[30%] text-white rounded-[30px] flex justify-between items-center">
+                        <div className="flex items-center gap-[16px]">
+                          <span className="flex gap-[8px]">
+                            <span className="text-[32px] font-[700]">
+                              {data.name}
+                            </span>
+                            <span className="text-[32px] font-[700]">24</span>
+                          </span>
+
+                          <button className="w-[32px] h-[32px] text-[20px] bg-white/20 rounded-[100%] flex justify-center items-center active:text-[18px]">
+                            <AiFillEye />
+                          </button>
+                        </div>
+
+                        <div className="flex">
+                          <button
+                            onClick={handlePrevSlide}
+                            className="w-[40px] text-[24px] active:text-[23px]"
+                          >
+                            <FaArrowLeft />
+                          </button>
+                          <button
+                            onClick={handleNextSlide}
+                            className="w-[40px] text-[24px] active:text-[23px]"
+                          >
+                            <FaArrowRight />
+                          </button>
+                        </div>
+                      </div>
+
+                      {!hideButtons[index_data] && (
+                        <div className="absolute bottom-[-40px] z-100 w-[100%] flex justify-center overflow-visible">
+                          <div className="flex gap-[24px]">
+                            <button
+                              onClick={handleRemoveUser}
+                              className="w-[80px] h-[80px] text-[64px] text-gray-700 bg-white rounded-[24px] flex justify-center items-center active:text-[63px]"
+                            >
+                              <IoClose />
+                            </button>
+                            <button
+                              onClick={createMatching}
+                              className="w-[80px] h-[80px] text-[48px] text-red-500 bg-white rounded-[24px] flex justify-center items-center active:text-[47px]"
+                            >
+                              <IoHeart />
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </SwiperSlide>
                 ))}
