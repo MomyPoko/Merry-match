@@ -32,6 +32,11 @@ const MatchingPage = () => {
   const [dateOfBirth, setDateofbirth] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [hideButtons, setHideButtons] = useState<boolean[]>([]);
+  const [rejectedUsers, setRejectedUsers] = useState<string[]>(() => {
+    // ดึงข้อมูลจาก localStorage เมื่อโหลดครั้งแรก
+    const storedRejectedUsers = localStorage.getItem("rejectedUsers");
+    return storedRejectedUsers ? JSON.parse(storedRejectedUsers) : [];
+  });
 
   const { data: session } = useSession();
   const swiperRef = useRef<any>(null);
@@ -73,10 +78,15 @@ const MatchingPage = () => {
       const response = await axios.get("/api/users/index", {
         params: { sexPref, dateOfBirth },
       });
-      setUserData(response.data);
-      setHideButtons(Array(response.data.length).fill(false));
 
-      console.log("Users data fetched: ", response.data);
+      const filteredUserData = response.data.filter(
+        (user: UserData) => !rejectedUsers.includes(user._id)
+      );
+
+      setUserData(filteredUserData);
+      setHideButtons(Array(filteredUserData.length).fill(false));
+
+      console.log("Users data fetched: ", filteredUserData);
     } catch (error) {
       console.log("Error fetching users data: ", error);
     }
@@ -105,6 +115,15 @@ const MatchingPage = () => {
         return updatedUserData;
       });
 
+      setRejectedUsers((prevRejectedUsers) => {
+        const updatedRejectedUsers = [...prevRejectedUsers, rejectedUserId];
+        localStorage.setItem(
+          "rejectedUsers",
+          JSON.stringify(updatedRejectedUsers)
+        ); // เก็บลง localStorage
+        return updatedRejectedUsers;
+      });
+
       // handleNextSlide();
     } catch (error) {
       console.log("Error rejecting user: ", error);
@@ -127,7 +146,7 @@ const MatchingPage = () => {
     if (session) {
       getUserData();
     }
-  }, [sexPref, dateOfBirth, session, matchingStatus]);
+  }, [sexPref, dateOfBirth, session, matchingStatus, rejectedUsers]);
 
   return (
     <div className="w-screen h-screen flex">

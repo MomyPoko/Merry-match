@@ -17,7 +17,7 @@ const getAllUsersWithPackage = async (currentUserId: string) => {
     .populate("packages")
     .lean();
 
-  console.log("check user add rejected: ", users);
+  // console.log("check user add rejected: ", users);
   return users.map((user) => ({
     ...user,
     packages: user.packages || null, // ถ้าไม่มี package ให้ตั้งค่าเป็น null
