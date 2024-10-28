@@ -15,22 +15,31 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
+interface UserData {
+  _id: string;
+  id: string;
+  name: string;
+  image: { url: string }[];
+}
+
 const MatchingPage = () => {
-  const [matchingId, setMatchingId] = useState(null);
-  const [userData, setUserData] = useState(null);
-  const [matchingStatus, setMatchingStatus] = useState("pending");
+  const [matchingId, setMatchingId] = useState<string | null>(null);
+  const [userData, setUserData] = useState<UserData[] | null>(null);
+  const [matchingStatus, setMatchingStatus] = useState<
+    "pending" | "matched" | "rejected"
+  >("pending");
   const [sexPref, setSexpref] = useState<string | null>(null);
   const [dateOfBirth, setDateofbirth] = useState<string | null>(null);
-  const [activeIndex, setActiveIndex] = useState<Number>(0);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
   const [hideButtons, setHideButtons] = useState<boolean[]>([]);
 
   const { data: session } = useSession();
-  const swiperRef = useRef(null);
+  const swiperRef = useRef<any>(null);
 
   const createMatching = async () => {
     try {
       const requesterUser = { id: session?.user?.id }; // ใช้ session เพื่อดึง id ของผู้ใช้งาน
-      const receiverUser = { id: userData[activeIndex]._id }; // ใช้ id ของผู้ใช้งานที่เลือกใน Swiper
+      const receiverUser = { id: userData?.[activeIndex]?._id }; // ใช้ id ของผู้ใช้งานที่เลือกใน Swiper
 
       const response = await axios.post("/api/matching/index", {
         requesterUser,
@@ -43,7 +52,7 @@ const MatchingPage = () => {
         return updatedHideButtons;
       });
       handleNextSlide();
-      console.log("Mtaching created: ", response);
+      console.log("Matching created: ", response);
     } catch (error) {
       console.log("Error creating matching: ", error);
     }
@@ -66,14 +75,40 @@ const MatchingPage = () => {
       });
       setUserData(response.data);
       setHideButtons(Array(response.data.length).fill(false));
+
       console.log("Users data fetched: ", response.data);
     } catch (error) {
       console.log("Error fetching users data: ", error);
     }
   };
 
-  const handleRemoveUser = () => {
-    handleNextSlide();
+  const handleRemoveUser = async (rejectedUserId: string) => {
+    try {
+      if (!rejectedUserId) {
+        console.log("Rejected user ID is missing");
+        return;
+      }
+
+      await axios.put("/api/users/index", { rejectedUserId });
+
+      setUserData((prevUserData) => {
+        if (!prevUserData) return null;
+
+        const updatedUserData = prevUserData.filter(
+          (user) => user._id !== rejectedUserId
+        );
+
+        if (activeIndex >= updatedUserData.length) {
+          setActiveIndex(updatedUserData.length - 1);
+        }
+
+        return updatedUserData;
+      });
+
+      // handleNextSlide();
+    } catch (error) {
+      console.log("Error rejecting user: ", error);
+    }
   };
 
   const handleNextSlide = () => {
@@ -186,7 +221,7 @@ const MatchingPage = () => {
                 className="w-[100%] h-[80%] overflow-visible"
               >
                 {userData.map((data, index_data) => (
-                  <SwiperSlide key={data.id} className="overflow-visible">
+                  <SwiperSlide key={index_data} className="overflow-visible">
                     <div
                       className={`relative w-[110%] h-[90%] transition-all duration-500 ${
                         activeIndex === index_data
@@ -234,7 +269,7 @@ const MatchingPage = () => {
                         <div className="absolute bottom-[-40px] z-100 w-[100%] flex justify-center overflow-visible">
                           <div className="flex gap-[24px]">
                             <button
-                              onClick={handleRemoveUser}
+                              onClick={() => handleRemoveUser(data._id)}
                               className="w-[80px] h-[80px] text-[64px] text-gray-700 bg-white rounded-[24px] flex justify-center items-center active:text-[63px]"
                             >
                               <IoClose />

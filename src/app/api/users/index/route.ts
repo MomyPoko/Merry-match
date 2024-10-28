@@ -6,14 +6,19 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
 import "dotenv/config";
 import mongoose from "mongoose";
+import user from "@/models/user";
 
 mongoose.set("strictPopulate", false);
 
 const getAllUsersWithPackage = async (currentUserId: string) => {
-  const users = await User.find({ _id: { $ne: currentUserId } })
+  const users = await User.find({
+    _id: { $ne: currentUserId },
+    rejectedUsers: { $nin: [currentUserId] },
+  })
     .populate("packages")
     .lean();
 
+  console.log("check user add rejected: ", users);
   return users.map((user) => ({
     ...user,
     packages: user.packages || null, // ถ้าไม่มี package ให้ตั้งค่าเป็น null
@@ -27,6 +32,7 @@ const getUserByKeyValue = async (
 ) => {
   const query: any = {
     _id: { $ne: currentUserId },
+    rejectedUsers: { $nin: [currentUserId] },
   };
 
   if (sexPref) {
@@ -42,7 +48,7 @@ const getUserByKeyValue = async (
   return user || null; // ถ้าไม่พบผู้ใช้ให้คืนค่า null
 };
 
-export const GET = async (req: NextRequest) => {
+export async function GET(req: NextRequest) {
   try {
     await connectMongoDB();
 
@@ -83,4 +89,45 @@ export const GET = async (req: NextRequest) => {
       { status: 500 }
     );
   }
-};
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    console.log("PUT request received");
+    await connectMongoDB();
+
+    const session = await getServerSession(authOptions);
+    // console.log("check session data: ", session);
+    if (!session) {
+      return NextResponse.json(
+        { message: "Not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    const { rejectedUserId } = await req.json();
+    const currentUserId = session.user.id;
+
+    console.log("currentUserId: ", currentUserId);
+    console.log("rejectedUserId: ", rejectedUserId);
+
+    const currentUser = await User.findById(currentUserId);
+    if (!currentUser.rejectedUsers.includes(rejectedUserId)) {
+      console.log("Before rejecting: ", currentUser.rejectedUsers);
+      currentUser.rejectedUsers.push(rejectedUserId); // เพิ่ม ID ผู้ใช้ที่ถูกปฏิเสธ
+      await currentUser.save();
+      console.log("After rejecting: ", currentUser.rejectedUsers);
+    }
+
+    return NextResponse.json(
+      { message: "User rejected successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.log("Error rejecting user: ", error);
+    return NextResponse.json(
+      { message: "Failed to reject user" },
+      { status: 500 }
+    );
+  }
+}

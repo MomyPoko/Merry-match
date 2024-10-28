@@ -58,6 +58,13 @@ const userSchema = new Schema(
         publicId: { type: String },
       },
     ],
+    rejectedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
     role: {
       type: String,
       required: false,
