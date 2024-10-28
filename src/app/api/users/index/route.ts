@@ -1,12 +1,11 @@
 import User from "@/models/user";
-// import Package from "@/models/package";
+// import user from "@/models/user";
+import mongoose from "mongoose";
 import { connectMongoDB } from "@/utils/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/utils/authOptions";
 import { getServerSession } from "next-auth";
 import "dotenv/config";
-import mongoose from "mongoose";
-import user from "@/models/user";
 
 mongoose.set("strictPopulate", false);
 
