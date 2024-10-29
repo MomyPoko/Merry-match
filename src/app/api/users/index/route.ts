@@ -25,7 +25,7 @@ const getAllUsersWithPackage = async (currentUserId: string) => {
 };
 
 const getUserByKeyValue = async (
-  sexPref?: string | null,
+  sexIdent?: string | null,
   dateOfBirth?: string | null,
   currentUserId?: string
 ) => {
@@ -34,8 +34,9 @@ const getUserByKeyValue = async (
     rejectedUsers: { $nin: [currentUserId] },
   };
 
-  if (sexPref) {
-    query.sexPref = sexPref;
+  if (sexIdent) {
+    const sexIdentArray = sexIdent.split(",");
+    query.sexIdent = { $in: sexIdentArray };
   }
 
   if (dateOfBirth) {
@@ -62,19 +63,21 @@ export async function GET(req: NextRequest) {
     const currentUserId = session.user.id;
 
     const { searchParams } = new URL(req.url);
-    const sexpref = searchParams.get("sexPref");
+    const sexIdent = searchParams.get("sexIdent");
     const dateofbirth = searchParams.get("dateOfBirth");
 
-    // ถ้ามี params_key ให้ค้นหาผู้ใช้โดยใช้ sexpref หรือ dateofbirth
-    if (sexpref || dateofbirth) {
-      const user = await getUserByKeyValue(sexpref, dateofbirth, currentUserId);
-      if (user.length > 0) {
+    // ถ้ามี params_key ให้ค้นหาผู้ใช้โดยใช้ sexIdent หรือ dateofbirth
+    if (sexIdent || dateofbirth) {
+      const user = await getUserByKeyValue(
+        sexIdent,
+        dateofbirth,
+        currentUserId
+      );
+      if (user && user.length > 0) {
         return NextResponse.json(user, { status: 200 });
       } else {
-        return NextResponse.json(
-          { message: "User not found" },
-          { status: 404 }
-        );
+        // ส่ง array ว่างถ้าไม่พบผู้ใช้
+        return NextResponse.json([], { status: 200 });
       }
     } else {
       // ถ้าไม่มี params_key ให้คืนค่าผู้ใช้ทั้งหมดพร้อม package

@@ -28,15 +28,19 @@ const MatchingPage = () => {
   const [matchingStatus, setMatchingStatus] = useState<
     "pending" | "matched" | "rejected"
   >("pending");
-  const [sexPref, setSexpref] = useState<string | null>(null);
+  const [selectedSexIdent, setSelectedSexIdent] = useState<string[]>([]);
+  const [sexIdent, setSexIdent] = useState<string[]>([]);
   const [dateOfBirth, setDateofbirth] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [hideButtons, setHideButtons] = useState<boolean[]>([]);
+  const [noUsersFoundMessage, setNoUsersFoundMessage] = useState<string | null>(
+    null
+  );
 
   const { data: session } = useSession();
   const swiperRef = useRef<any>(null);
 
-  let sex_Preference: Array<string> = ["Male", "Female", "Other"];
+  let sex_Identities: Array<string> = ["Male", "Female", "Other"];
 
   const createMatching = async () => {
     try {
@@ -67,21 +71,36 @@ const MatchingPage = () => {
       });
       setMatchingStatus(status);
       console.log("Matching status update: ", response.data);
-    } catch (error) {}
+    } catch (error) {
+      console.log("Error updating matching: ", error);
+    }
   };
 
   const getUserData = async () => {
     try {
       const response = await axios.get("/api/users/index", {
-        params: { sexPref, dateOfBirth },
+        params: { sexIdent: sexIdent.join(","), dateOfBirth },
       });
+
+      if (response.data.length === 0) {
+        setNoUsersFoundMessage("User not found");
+        setUserData(null);
+      } else {
+        setUserData(response.data);
+        setNoUsersFoundMessage(null); // ลบข้อความเมื่อพบผู้ใช้
+      }
 
       setUserData(response.data);
       setHideButtons(Array(response.data.length).fill(false));
 
       console.log("Users data fetched: ", response.data);
-    } catch (error) {
-      console.log("Error fetching users data: ", error);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        setNoUsersFoundMessage("User not found");
+        setUserData(null); // หากไม่พบผู้ใช้
+      } else {
+        console.log("Error fetching users data: ", error);
+      }
     }
   };
 
@@ -126,11 +145,36 @@ const MatchingPage = () => {
     }
   };
 
+  const handleCheckboxChange = (gender: string) => {
+    // เลือก/ยกเลิกเลือกเพศ
+    setSelectedSexIdent((prev) =>
+      prev.includes(gender)
+        ? prev.filter((sex) => sex !== gender)
+        : [...prev, gender]
+    );
+  };
+
+  const handleSearch = () => {
+    setSexIdent([...selectedSexIdent]);
+  };
+
+  const handleClear = () => {
+    // Reset parameters
+    setSelectedSexIdent([]);
+    setSexIdent([]);
+    setDateofbirth(null);
+    getUserData();
+  };
+
   useEffect(() => {
     if (session) {
       getUserData();
     }
-  }, [sexPref, dateOfBirth, session, matchingStatus]);
+
+    if (sexIdent.length > 0 || dateOfBirth) {
+      getUserData();
+    }
+  }, [sexIdent, dateOfBirth, session, matchingStatus]);
 
   return (
     <div className="w-screen h-screen flex">
@@ -214,84 +258,101 @@ const MatchingPage = () => {
             </div>
           </div>
           <div className="pt-[88px] w-[65%] h-screen bg-BG">
-            <div className="w-full h-full flex flex-col justify-center items-center overflow-visible">
-              <Swiper
-                slidesPerView={1.75}
-                centeredSlides={true}
-                spaceBetween={200}
-                onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
-                ref={swiperRef}
-                className="w-[100%] h-[80%] overflow-visible"
-              >
-                {userData.map((data, index_data) => (
-                  <SwiperSlide key={index_data} className="overflow-visible">
-                    <div
-                      className={`relative w-[110%] h-[90%] transition-all duration-500 ${
-                        activeIndex === index_data
-                          ? "scale-100 z-20"
-                          : "scale-90 z-10 opacity-30"
-                      }`}
-                    >
-                      <img
-                        src={data.image[0].url}
-                        alt={data.name}
-                        className="w-[100%] h-[100%] rounded-[32px]"
-                      />
+            {userData && userData.length > 0 ? (
+              <>
+                <div className="w-full h-full flex flex-col justify-center items-center overflow-visible">
+                  <Swiper
+                    slidesPerView={1.75}
+                    centeredSlides={true}
+                    spaceBetween={200}
+                    onSlideChange={(swiper) =>
+                      setActiveIndex(swiper.activeIndex)
+                    }
+                    ref={swiperRef}
+                    className="w-[100%] h-[80%] overflow-visible"
+                  >
+                    {userData.map((data, index_data) => (
+                      <SwiperSlide
+                        key={index_data}
+                        className="overflow-visible"
+                      >
+                        <div
+                          className={`relative w-[110%] h-[90%] transition-all duration-500 ${
+                            activeIndex === index_data
+                              ? "scale-100 z-20"
+                              : "scale-90 z-10 opacity-30"
+                          }`}
+                        >
+                          <img
+                            src={data.image[0].url}
+                            alt={data.name}
+                            className="w-[100%] h-[100%] rounded-[32px]"
+                          />
 
-                      <div className="absolute bottom-0 bg-gradient-to-t from-[#390741] to-[070941]/0 px-[6%] w-full h-[30%] text-white rounded-[30px] flex justify-between items-center">
-                        <div className="flex items-center gap-[16px]">
-                          <span className="flex gap-[8px]">
-                            <span className="text-[32px] font-[700]">
-                              {data.name}
-                            </span>
-                            <span className="text-[32px] font-[700]">24</span>
-                          </span>
+                          <div className="absolute bottom-0 bg-gradient-to-t from-[#390741] to-[070941]/0 px-[6%] w-full h-[30%] text-white rounded-[30px] flex justify-between items-center">
+                            <div className="flex items-center gap-[16px]">
+                              <span className="flex gap-[8px]">
+                                <span className="text-[32px] font-[700]">
+                                  {data.name}
+                                </span>
+                                <span className="text-[32px] font-[700]">
+                                  24
+                                </span>
+                              </span>
 
-                          <button className="w-[32px] h-[32px] text-[20px] bg-white/20 rounded-[100%] flex justify-center items-center active:text-[18px]">
-                            <AiFillEye />
-                          </button>
-                        </div>
+                              <button className="w-[32px] h-[32px] text-[20px] bg-white/20 rounded-[100%] flex justify-center items-center active:text-[18px]">
+                                <AiFillEye />
+                              </button>
+                            </div>
 
-                        <div className="flex">
-                          <button
-                            onClick={handlePrevSlide}
-                            className="w-[40px] text-[24px] active:text-[23px]"
-                          >
-                            <FaArrowLeft />
-                          </button>
-                          <button
-                            onClick={handleNextSlide}
-                            className="w-[40px] text-[24px] active:text-[23px]"
-                          >
-                            <FaArrowRight />
-                          </button>
-                        </div>
-                      </div>
-
-                      {!hideButtons[index_data] && (
-                        <div className="absolute bottom-[-40px] z-100 w-[100%] flex justify-center overflow-visible">
-                          <div className="flex gap-[24px]">
-                            <button
-                              onClick={() => handleRemoveUser(data._id)}
-                              className="w-[80px] h-[80px] text-[64px] text-gray-700 bg-white rounded-[24px] flex justify-center items-center active:text-[63px]"
-                            >
-                              <IoClose />
-                            </button>
-                            <button
-                              onClick={createMatching}
-                              className="w-[80px] h-[80px] text-[48px] text-red-500 bg-white rounded-[24px] flex justify-center items-center active:text-[47px]"
-                            >
-                              <IoHeart />
-                            </button>
+                            <div className="flex">
+                              <button
+                                onClick={handlePrevSlide}
+                                className="w-[40px] text-[24px] active:text-[23px]"
+                              >
+                                <FaArrowLeft />
+                              </button>
+                              <button
+                                onClick={handleNextSlide}
+                                className="w-[40px] text-[24px] active:text-[23px]"
+                              >
+                                <FaArrowRight />
+                              </button>
+                            </div>
                           </div>
+
+                          {!hideButtons[index_data] && (
+                            <div className="absolute bottom-[-40px] z-100 w-[100%] flex justify-center overflow-visible">
+                              <div className="flex gap-[24px]">
+                                <button
+                                  onClick={() => handleRemoveUser(data._id)}
+                                  className="w-[80px] h-[80px] text-[64px] text-gray-700 bg-white rounded-[24px] flex justify-center items-center active:text-[63px]"
+                                >
+                                  <IoClose />
+                                </button>
+                                <button
+                                  onClick={createMatching}
+                                  className="w-[80px] h-[80px] text-[48px] text-red-500 bg-white rounded-[24px] flex justify-center items-center active:text-[47px]"
+                                >
+                                  <IoHeart />
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
-            <div></div>
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                </div>
+                <div></div>
+              </>
+            ) : (
+              <div className="w-full h-full flex flex-col justify-center items-center">
+                <p className="text-2xl font-bold text-red-800">
+                  {noUsersFoundMessage}
+                </p>
+              </div>
+            )}
           </div>
           <div className="pt-[88px] w-[15%] h-screen bg-gray-100">
             <div className="pt-[20px] w-full flex justify-center">
@@ -301,15 +362,17 @@ const MatchingPage = () => {
                     Sex you interest
                   </div>
                   <div className="flex flex-col gap-[16px]">
-                    {sex_Preference.map((sex, index_sex) => {
+                    {sex_Identities.map((genders, index_sex) => {
                       return (
                         <div key={index_sex} className="flex gap-[12px]">
                           <input
                             type="checkbox"
+                            checked={selectedSexIdent.includes(genders)}
+                            onChange={() => handleCheckboxChange(genders)}
                             className="checkbox checkbox-secondary"
                           />
                           <div className="text-[16px] font-[500] text-gray-700">
-                            {sex}
+                            {genders}
                           </div>
                         </div>
                       );
@@ -327,10 +390,16 @@ const MatchingPage = () => {
             </div>
             <div className="border-t-[1px] border-gray-300 flex justify-center gap-[16px]">
               <div className="pt-[20px] h-[80px] flex justify-center items-center gap-[16px]">
-                <button className="w-[40px] h-[20px] text-[16px] font-[700] text-red-500">
+                <button
+                  onClick={handleClear}
+                  className="w-[40px] h-[20px] text-[16px] font-[700] text-red-500"
+                >
                   Clear
                 </button>
-                <button className="w-[99px] h-[48px] text-[16px] font-[700] text-white bg-red-500 rounded-[99px]">
+                <button
+                  onClick={handleSearch}
+                  className="w-[99px] h-[48px] text-[16px] font-[700] text-white bg-red-500 rounded-[99px]"
+                >
                   Search
                 </button>
               </div>
