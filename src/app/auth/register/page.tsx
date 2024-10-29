@@ -656,7 +656,6 @@ const Register: React.FC = () => {
                         className="p-[12px_16px_12px_12px] w-[100%] h-[50px] border-[1px] border-gray-400 rounded-[8px] outline-none"
                       >
                         <option value="">Sexual</option>
-                        <option>All Genders</option>
                         <option>Male</option>
                         <option>Female</option>
                         <option>Other</option>
@@ -674,12 +673,6 @@ const Register: React.FC = () => {
                         className="p-[12px_16px_12px_12px] w-[100%] h-[50px] border-[1px] border-gray-400 rounded-[8px] outline-none"
                       >
                         <option value="">Types</option>
-                        <option>Any Race/Ethnicity</option>
-                        <option>Caucasian/White</option>
-                        <option>Hispanic/Latino</option>
-                        <option>Any Race/Ethnicity</option>
-                        <option>Caucasian/White</option>
-                        <option>Hispanic/Latino</option>
                         <option>Any Race/Ethnicity</option>
                         <option>Caucasian/White</option>
                         <option>Hispanic/Latino</option>

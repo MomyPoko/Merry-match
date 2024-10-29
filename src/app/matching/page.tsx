@@ -32,14 +32,11 @@ const MatchingPage = () => {
   const [dateOfBirth, setDateofbirth] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [hideButtons, setHideButtons] = useState<boolean[]>([]);
-  const [rejectedUsers, setRejectedUsers] = useState<string[]>(() => {
-    // ดึงข้อมูลจาก localStorage เมื่อโหลดครั้งแรก
-    const storedRejectedUsers = localStorage.getItem("rejectedUsers");
-    return storedRejectedUsers ? JSON.parse(storedRejectedUsers) : [];
-  });
 
   const { data: session } = useSession();
   const swiperRef = useRef<any>(null);
+
+  let sex_Preference: Array<string> = ["Male", "Female", "Other"];
 
   const createMatching = async () => {
     try {
@@ -79,14 +76,10 @@ const MatchingPage = () => {
         params: { sexPref, dateOfBirth },
       });
 
-      const filteredUserData = response.data.filter(
-        (user: UserData) => !rejectedUsers.includes(user._id)
-      );
+      setUserData(response.data);
+      setHideButtons(Array(response.data.length).fill(false));
 
-      setUserData(filteredUserData);
-      setHideButtons(Array(filteredUserData.length).fill(false));
-
-      console.log("Users data fetched: ", filteredUserData);
+      console.log("Users data fetched: ", response.data);
     } catch (error) {
       console.log("Error fetching users data: ", error);
     }
@@ -115,15 +108,6 @@ const MatchingPage = () => {
         return updatedUserData;
       });
 
-      setRejectedUsers((prevRejectedUsers) => {
-        const updatedRejectedUsers = [...prevRejectedUsers, rejectedUserId];
-        localStorage.setItem(
-          "rejectedUsers",
-          JSON.stringify(updatedRejectedUsers)
-        ); // เก็บลง localStorage
-        return updatedRejectedUsers;
-      });
-
       // handleNextSlide();
     } catch (error) {
       console.log("Error rejecting user: ", error);
@@ -146,7 +130,7 @@ const MatchingPage = () => {
     if (session) {
       getUserData();
     }
-  }, [sexPref, dateOfBirth, session, matchingStatus, rejectedUsers]);
+  }, [sexPref, dateOfBirth, session, matchingStatus]);
 
   return (
     <div className="w-screen h-screen flex">
@@ -317,35 +301,19 @@ const MatchingPage = () => {
                     Sex you interest
                   </div>
                   <div className="flex flex-col gap-[16px]">
-                    <div className="flex gap-[12px]">
-                      <input
-                        type="checkbox"
-                        className="checkbox checkbox-secondary"
-                      />
-                      <div className="text-[16px] font-[500] text-gray-700">
-                        Male
-                      </div>
-                    </div>
-
-                    <div className="flex gap-[12px]">
-                      <input
-                        type="checkbox"
-                        className="checkbox checkbox-secondary"
-                      />
-                      <div className="text-[16px] font-[500] text-gray-700">
-                        Female
-                      </div>
-                    </div>
-
-                    <div className="flex gap-[12px]">
-                      <input
-                        type="checkbox"
-                        className="checkbox checkbox-secondary"
-                      />
-                      <div className="text-[16px] font-[500] text-gray-700">
-                        Other
-                      </div>
-                    </div>
+                    {sex_Preference.map((sex, index_sex) => {
+                      return (
+                        <div key={index_sex} className="flex gap-[12px]">
+                          <input
+                            type="checkbox"
+                            className="checkbox checkbox-secondary"
+                          />
+                          <div className="text-[16px] font-[500] text-gray-700">
+                            {sex}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="flex flex-col gap-[16px]">
