@@ -19,6 +19,7 @@ interface UserData {
   _id: string;
   id: string;
   name: string;
+  dateOfBirth: string;
   image: { url: string }[];
 }
 
@@ -31,11 +32,11 @@ const MatchingPage = () => {
   const [selectedSexIdent, setSelectedSexIdent] = useState<string[]>([]);
   const [sexIdent, setSexIdent] = useState<string[]>([]);
   const [dateOfBirth, setDateofbirth] = useState<string | null>(null);
-  const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [hideButtons, setHideButtons] = useState<boolean[]>([]);
   const [noUsersFoundMessage, setNoUsersFoundMessage] = useState<string | null>(
     null
   );
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [hideButtons, setHideButtons] = useState<boolean[]>([]);
 
   const { data: session } = useSession();
   const swiperRef = useRef<any>(null);
@@ -102,6 +103,22 @@ const MatchingPage = () => {
         console.log("Error fetching users data: ", error);
       }
     }
+  };
+
+  const calculateAge = (dateOfBirth: string): number => {
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDifference < 0 ||
+      (monthDifference === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
   };
 
   const handleRemoveUser = async (rejectedUserId: string) => {
@@ -180,8 +197,8 @@ const MatchingPage = () => {
     <div className="w-screen h-screen flex">
       {userData && (
         <>
-          <div className="pt-[88px] w-[20%] h-screen bg-gray-100">
-            <div className="w-[100%] h-[259px] border-b-[1px] border-gray-300 flex justify-center items-center">
+          <div className="pt-[88px] w-[20%] h-screen bg-gray-100 flex flex-col">
+            <div className="py-[30px] w-[100%] border-b-[1px] border-gray-300 flex justify-center items-center">
               <button className="p-[24px] w-[282px] h-[187px] border-[1px] border-gray-400 text-center bg-gray-200 rounded-[16px] flex flex-col justify-center items-center gap-[4px]">
                 <img
                   src="/images/icon-findheart.png"
@@ -215,44 +232,46 @@ const MatchingPage = () => {
                 </div>
               </div>
             </div>
-            <div className="w-full flex justify-center">
-              <div className="py-[24px] w-[281px] flex flex-col gap-[16px]">
+            <div className="w-full h-full flex justify-center">
+              <div className="pt-[24px] w-[281px] flex flex-col gap-[16px]">
                 <div className="text-[24px] font-[700] text-gray-900">
                   Chat with Merry Match
                 </div>
-                {/* ถ้ากะลัง chat อยู่กับใครจะมี border ถ้าอยู่หน้า matching เดี๋ยวมาแก้ไม่ต้องมี border */}
-                <div className="flex flex-col gap-[10px]">
-                  <div className="px-[12px] py-[16px] bg-gray-100 border-[1px] border-purple-500 rounded-[16px] flex gap-[12px]">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-[60px] h-[60px] rounded-[99px]"
-                    />
-                    <div className="flex flex-col gap-[8px]">
-                      <div className="text-[16px] font-[400] text-gray-900">
-                        name
-                      </div>
-                      <div className="text-[14px] font-[500] text-gray-700">
-                        current chat
+
+                <div className="carousel carousel-vertical rounded-box h-[322px]">
+                  <div className="pb-[10px] carousel-item">
+                    <div className="px-[12px] py-[16px] w-full bg-gray-100 border-[1px] border-purple-500 rounded-[16px] flex gap-[12px]">
+                      <img
+                        src="/images/image-loginpage.png"
+                        className="w-[60px] h-[60px] rounded-[99px]"
+                      />
+                      <div className="flex flex-col gap-[8px]">
+                        <div className="text-[16px] font-[400] text-gray-900">
+                          name
+                        </div>
+                        <div className="text-[14px] font-[500] text-gray-700">
+                          current chat
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* test เดี๋ยวรอ loop เพื่อเพิ่มแชท */}
-                  <div className="px-[12px] py-[16px] bg-gray-100 border-[1px] border-purple-500 rounded-[16px] flex gap-[12px]">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-[60px] h-[60px] rounded-[99px]"
-                    />
-                    <div className="flex flex-col gap-[8px]">
-                      <div className="text-[16px] font-[400] text-gray-900">
-                        name
-                      </div>
-                      <div className="text-[14px] font-[500] text-gray-700">
-                        current chat
+                  <div className="pb-[10px] carousel-item">
+                    <div className="px-[12px] py-[16px] w-full bg-gray-100 border-[1px] border-purple-500 rounded-[16px] flex gap-[12px]">
+                      <img
+                        src="/images/image-loginpage.png"
+                        className="w-[60px] h-[60px] rounded-[99px]"
+                      />
+                      <div className="flex flex-col gap-[8px]">
+                        <div className="text-[16px] font-[400] text-gray-900">
+                          name
+                        </div>
+                        <div className="text-[14px] font-[500] text-gray-700">
+                          current chat
+                        </div>
                       </div>
                     </div>
                   </div>
-                  {/* test เดี๋ยวรอ loop เพื่อเพิ่มแชท */}
                 </div>
               </div>
             </div>
@@ -296,7 +315,7 @@ const MatchingPage = () => {
                                   {data.name}
                                 </span>
                                 <span className="text-[32px] font-[700]">
-                                  24
+                                  {calculateAge(data.dateOfBirth)}
                                 </span>
                               </span>
 
