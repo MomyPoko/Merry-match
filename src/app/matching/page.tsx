@@ -10,6 +10,9 @@ import { IoClose } from "react-icons/io5";
 import { IoHeart } from "react-icons/io5";
 import { AiFillEye } from "react-icons/ai";
 import axios from "axios";
+import * as React from "react";
+import Box from "@mui/material/Box";
+import Slider from "@mui/material/Slider";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -36,6 +39,7 @@ const MatchingPage = () => {
     null
   );
   const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [ageRange, setAgeRange] = useState<number[]>([18, 50]);
   const [hideButtons, setHideButtons] = useState<boolean[]>([]);
 
   const { data: session } = useSession();
@@ -181,6 +185,19 @@ const MatchingPage = () => {
     setSexIdent([]);
     setDateofbirth(null);
     getUserData();
+  };
+
+  const handleAgeRangeChange = (event: Event, newValue: number | number[]) => {
+    setAgeRange(newValue as number[]);
+  };
+
+  const handleInputAgeRangeChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const newRange = [...ageRange];
+    newRange[index] = Number(event.target.value);
+    setAgeRange(newRange as number[]);
   };
 
   useEffect(() => {
@@ -402,8 +419,46 @@ const MatchingPage = () => {
                   <div className="text-[16px] font-[700] text-gray-900">
                     Age Range
                   </div>
-                  <div>----------</div>
-                  <div>18-50</div>
+                  <div className="w-full flex justify-center">
+                    <Box sx={{ width: "95%" }}>
+                      <Slider
+                        getAriaLabel={() => "Age range"}
+                        value={ageRange}
+                        onChange={handleAgeRangeChange}
+                        valueLabelDisplay="auto"
+                        min={18}
+                        max={50}
+                        sx={{
+                          color: "pink", // เปลี่ยนสี Slider เป็นสีชมพู
+                          "& .MuiSlider-thumb": {
+                            width: "11px",
+                            height: "11px",
+                            border: "2px solid #A62D82",
+                            backgroundColor: "#DF89C6", // สีชมพูสำหรับ thumb
+                          },
+                          "& .MuiSlider-track": {
+                            backgroundColor: "#A62D82", // สีชมพูสำหรับ track
+                          },
+                        }}
+                      />
+                    </Box>
+                  </div>
+
+                  <div className="flex justify-center items-center gap-[10px]">
+                    <input
+                      type="text"
+                      className="w-[100%] h-[48px] pl-[12px] rounded-[8px] outline-[1px] outline-purple-500"
+                      value={ageRange[0]}
+                      onChange={(e) => handleInputAgeRangeChange(e, 0)}
+                    />
+                    <span> - </span>
+                    <input
+                      type="text"
+                      className="w-[100%] h-[48px] pl-[12px] rounded-[8px] outline-[1px] outline-purple-500"
+                      value={ageRange[1]}
+                      onChange={(e) => handleInputAgeRangeChange(e, 1)}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
