@@ -26,8 +26,8 @@ const getAllUsersWithPackage = async (currentUserId: string) => {
 
 const getUserByKeyValue = async (
   sexIdent?: string | null,
-  minAge: number = 18,
-  maxAge: number = 50,
+  minAge?: number | null,
+  maxAge?: number | null,
   currentUserId?: string
 ) => {
   const query: any = {
@@ -40,12 +40,12 @@ const getUserByKeyValue = async (
     query.sexIdent = { $in: sexIdentArray };
   }
 
-  if (minAge !== null && maxAge !== null) {
+  if (minAge != null && maxAge != null) {
     const today = new Date();
     const minDate = new Date(
-      today.getFullYear() - maxAge,
+      today.getFullYear() - maxAge - 1,
       today.getMonth(),
-      today.getDate()
+      today.getDate() + 1
     );
     const maxDate = new Date(
       today.getFullYear() - minAge,
@@ -77,11 +77,15 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const sexIdent = searchParams.get("sexIdent");
-    const minAge = parseInt(searchParams.get("minAge") || "18", 10);
-    const maxAge = parseInt(searchParams.get("maxAge") || "50", 10);
+    const minAge = searchParams.get("minAge")
+      ? parseInt(searchParams.get("minAge") || "0", 10)
+      : null;
+    const maxAge = searchParams.get("maxAge")
+      ? parseInt(searchParams.get("maxAge") || "0", 10)
+      : null;
 
     // ถ้ามี params_key ให้ค้นหาผู้ใช้โดยใช้ sexIdent หรือ dateofbirth
-    if (sexIdent || (minAge && maxAge)) {
+    if (sexIdent || (minAge !== null && maxAge !== null)) {
       const user = await getUserByKeyValue(
         sexIdent,
         minAge,

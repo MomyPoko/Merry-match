@@ -34,12 +34,13 @@ const MatchingPage = () => {
   >("pending");
   const [selectedSexIdent, setSelectedSexIdent] = useState<string[]>([]);
   const [sexIdent, setSexIdent] = useState<string[]>([]);
-  const [dateOfBirth, setDateofbirth] = useState<string | null>(null);
+  // const [dateOfBirth, setDateofbirth] = useState<string | null>(null);
   const [noUsersFoundMessage, setNoUsersFoundMessage] = useState<string | null>(
     null
   );
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [ageRange, setAgeRange] = useState<number[]>([18, 50]);
+  const [selectedAgeRange, setSelectedAgeRange] = useState<number[]>([18, 50]);
   const [hideButtons, setHideButtons] = useState<boolean[]>([]);
 
   const { data: session } = useSession();
@@ -84,7 +85,11 @@ const MatchingPage = () => {
   const getUserData = async () => {
     try {
       const response = await axios.get("/api/users/index", {
-        params: { sexIdent: sexIdent.join(","), dateOfBirth },
+        params: {
+          sexIdent: sexIdent.join(","),
+          minAge: ageRange[0],
+          maxAge: ageRange[1],
+        },
       });
 
       if (response.data.length === 0) {
@@ -177,13 +182,15 @@ const MatchingPage = () => {
 
   const handleSearch = () => {
     setSexIdent([...selectedSexIdent]);
+    setSelectedAgeRange(ageRange);
   };
 
   const handleClear = () => {
     // Reset parameters
     setSelectedSexIdent([]);
     setSexIdent([]);
-    setDateofbirth(null);
+    setSelectedAgeRange([18, 50]);
+    setAgeRange([18, 50]);
     getUserData();
   };
 
@@ -205,10 +212,10 @@ const MatchingPage = () => {
       getUserData();
     }
 
-    if (sexIdent.length > 0 || dateOfBirth) {
+    if (sexIdent.length > 0) {
       getUserData();
     }
-  }, [sexIdent, dateOfBirth, session, matchingStatus]);
+  }, [sexIdent, selectedAgeRange, session, matchingStatus]);
 
   return (
     <div className="w-screen h-screen flex">
