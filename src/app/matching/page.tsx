@@ -84,7 +84,11 @@ const MatchingPage = () => {
   const getUserData = async () => {
     try {
       const response = await axios.get("/api/users/index", {
-        params: { sexIdent: sexIdent.join(","), dateOfBirth },
+        params: {
+          sexIdent: sexIdent.join(","),
+          minAge: ageRange[0],
+          maxAge: ageRange[1],
+        },
       });
 
       if (response.data.length === 0) {
@@ -177,6 +181,7 @@ const MatchingPage = () => {
 
   const handleSearch = () => {
     setSexIdent([...selectedSexIdent]);
+    getUserData();
   };
 
   const handleClear = () => {
