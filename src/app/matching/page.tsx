@@ -73,6 +73,16 @@ const MatchingPage = () => {
     }
   };
 
+  const getMatchingData = async () => {
+    try {
+      const response = await axios.get("/api/matching/index");
+      setUserData(response.data);
+      setNoUsersFoundMessage("User not found");
+    } catch (error) {
+      console.log("Error fetching matching: ", error);
+    }
+  };
+
   const updateMatching = async (
     status: "matched" | "rejected",
     receiverId: string
@@ -215,6 +225,12 @@ const MatchingPage = () => {
   };
 
   useEffect(() => {
+    if (pages === "merrymatch") {
+      getMatchingData();
+    }
+  }, [pages]);
+
+  useEffect(() => {
     if (session) {
       getUserData();
     }
@@ -254,7 +270,13 @@ const MatchingPage = () => {
                 <div className="text-[24px] text-gray-900 font-[700]">
                   Merry Match!
                 </div>
-                <button className="flex gap-[12px]">
+                <button
+                  className={`flex gap-[12px] ${
+                    pages === "merrymatch"
+                      ? "border-[1px] border-purple-500"
+                      : ""
+                  }`}
+                >
                   <div
                     onClick={() => setPages("merrymatch")}
                     className="relative w-[100px] h-[100px]"
@@ -518,12 +540,10 @@ const MatchingPage = () => {
               </div>
             </>
           ) : pages === "chatting" ? (
-            <div className="w-[80%] bg-red-200">
-              <div className="text-[32px] text-white">chatting page</div>
+            <div className="pt-[88px] w-[80%] bg-red-200">
+              <div className="text-[60px] text-white">chatting page</div>
             </div>
-          ) : (
-            ""
-          )}
+          ) : null}
         </>
       )}
     </div>

@@ -1,9 +1,11 @@
 import { connectMongoDB } from "@/utils/mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/utils/authOptions";
 import MatchingStatus from "@/models/matching";
 import User from "@/models/user";
 
-export const POST = async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
   try {
     await connectMongoDB();
     const { requesterUser, receiverUser } = await req.json();
@@ -80,4 +82,34 @@ export const POST = async (req: NextRequest) => {
       { status: 500 }
     );
   }
-};
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    await connectMongoDB();
+
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json(
+        { message: "Not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    const currentUserId = session.user.id;
+
+    const matchingData = await MatchingStatus.find({
+      "requesterUser.id": currentUserId,
+    });
+    return NextResponse.json(matchingData, { status: 200 });
+  } catch (error) {
+    console.log("Error fetching matching data: ", error);
+    return NextResponse.json(
+      {
+        message: "Failed to fetch matching data",
+        error,
+      },
+      { status: 500 }
+    );
+  }
+}
