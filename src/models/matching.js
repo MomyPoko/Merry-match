@@ -13,24 +13,46 @@ const matchingSchema = new Schema(
         type: String,
         required: true,
       },
-    },
-    receiverUser: {
-      id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-      },
-      username: {
+      name: {
         type: String,
         required: true,
       },
+      image: [
+        {
+          url: { type: String },
+          publicId: { type: String },
+        },
+      ],
     },
-    status: {
-      type: String,
-      enum: ["pending", "matched", "rejected"],
-      default: "pending",
-      required: true,
-    },
+    receiverUser: [
+      {
+        id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        username: {
+          type: String,
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+        image: [
+          {
+            url: { type: String },
+            publicId: { type: String },
+          },
+        ],
+        status: {
+          type: String,
+          enum: ["pending", "matched", "rejected"],
+          default: "pending",
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true, collection: "matching" }
 );

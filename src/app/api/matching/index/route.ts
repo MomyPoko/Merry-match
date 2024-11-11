@@ -11,9 +11,6 @@ export const POST = async (req: NextRequest) => {
     const requester = await User.findById(requesterUser.id);
     const receiver = await User.findById(receiverUser.id);
 
-    // console.log("show requester", requester);
-    // console.log("show receiver", receiver);
-
     if (!requester || !receiver) {
       return NextResponse.json(
         { message: "Requester or Receiver not found" },
@@ -21,37 +18,61 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    const newMatching = new MatchingStatus({
-      requesterUser: {
-        id: requester._id,
-        username: requester.username,
-      },
-      receiverUser: {
-        id: receiver._id,
-        username: receiver.username,
-      },
-      status: "pending",
+    let existingMatching = await MatchingStatus.findOne({
+      "requesterUser.id": requester._id,
     });
 
-    await newMatching.save();
+    if (existingMatching) {
+      const receiverExists = existingMatching.receiverUser.some(
+        (user: any) => user.id.toString() === receiver._id.toString()
+      );
 
-    return NextResponse.json(
-      {
-        message: "Matching request created successfully",
-        matching_data: {
-          requester: {
-            id: requester._id,
-            username: requester.username,
-          },
-          receiver: {
+      if (!receiverExists) {
+        existingMatching.receiverUser.push({
+          id: receiver._id,
+          username: receiver.username,
+          name: receiver.name,
+          image: receiver.image,
+          status: "pending",
+        });
+        await existingMatching.save();
+      }
+      return NextResponse.json(
+        {
+          message: "Matching updated with new receiver",
+          matching_data: existingMatching,
+        },
+        { status: 200 }
+      );
+    } else {
+      const newMatching = new MatchingStatus({
+        requesterUser: {
+          id: requester._id,
+          username: requester.username,
+          name: requester.name,
+          image: requester.image,
+        },
+        receiverUser: [
+          {
             id: receiver._id,
             username: receiver.username,
+            name: receiver.name,
+            image: receiver.image,
+            status: "pending",
           },
-          status: "pending",
+        ],
+      });
+
+      await newMatching.save();
+
+      return NextResponse.json(
+        {
+          message: "Matching request created successfully",
+          matching_data: newMatching,
         },
-      },
-      { status: 201 }
-    );
+        { status: 201 }
+      );
+    }
   } catch (error) {
     console.log("Error creating matching request: ", error);
     return NextResponse.json(

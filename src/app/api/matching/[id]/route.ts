@@ -4,6 +4,7 @@ import MatchingStatus from "@/models/matching";
 
 interface UpdateMatchingRequest {
   updateStatus: "matched" | "rejected";
+  receiverId: string;
 }
 
 export const PUT = async (
@@ -17,7 +18,8 @@ export const PUT = async (
     const matchingId = params.id;
 
     // ประกาศตัวแปล status
-    const { updateStatus }: UpdateMatchingRequest = await req.json();
+    const { updateStatus, receiverId }: UpdateMatchingRequest =
+      await req.json();
 
     const matching = await MatchingStatus.findById(matchingId);
 
@@ -28,7 +30,20 @@ export const PUT = async (
       );
     }
 
-    matching.status = updateStatus;
+    const receiver = matching.receiverUser.find(
+      (user: any) => user.id.toString() === receiverId
+    );
+
+    if (!receiver) {
+      return NextResponse.json(
+        {
+          message: "Receiver user not found in matching status",
+        },
+        { status: 404 }
+      );
+    }
+
+    receiver.status = updateStatus;
     await matching.save();
 
     return NextResponse.json(

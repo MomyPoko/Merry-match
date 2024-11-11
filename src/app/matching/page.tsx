@@ -42,6 +42,9 @@ const MatchingPage = () => {
   const [ageRange, setAgeRange] = useState<number[]>([18, 50]);
   const [selectedAgeRange, setSelectedAgeRange] = useState<number[]>([18, 50]);
   const [hideButtons, setHideButtons] = useState<boolean[]>([]);
+  const [pages, setPages] = useState<"matching" | "chatting" | "merrymatch">(
+    "matching"
+  );
 
   const { data: session } = useSession();
   const swiperRef = useRef<any>(null);
@@ -70,10 +73,14 @@ const MatchingPage = () => {
     }
   };
 
-  const updateMatching = async (status: "matched" | "rejected") => {
+  const updateMatching = async (
+    status: "matched" | "rejected",
+    receiverId: string
+  ) => {
     try {
       const response = await axios.put(`api/matching/${matchingId}`, {
         updateStatus: status,
+        receiverId,
       });
       setMatchingStatus(status);
       console.log("Matching status update: ", response.data);
@@ -87,8 +94,8 @@ const MatchingPage = () => {
       const response = await axios.get("/api/users/index", {
         params: {
           sexIdent: sexIdent.join(","),
-          minAge: ageRange[0],
-          maxAge: ageRange[1],
+          minAge: selectedAgeRange[0],
+          maxAge: selectedAgeRange[1],
         },
       });
 
@@ -182,7 +189,7 @@ const MatchingPage = () => {
 
   const handleSearch = () => {
     setSexIdent([...selectedSexIdent]);
-    setSelectedAgeRange(ageRange);
+    setAgeRange(selectedAgeRange);
   };
 
   const handleClear = () => {
@@ -195,7 +202,7 @@ const MatchingPage = () => {
   };
 
   const handleAgeRangeChange = (event: Event, newValue: number | number[]) => {
-    setAgeRange(newValue as number[]);
+    setSelectedAgeRange(newValue as number[]);
   };
 
   const handleInputAgeRangeChange = (
@@ -204,7 +211,7 @@ const MatchingPage = () => {
   ) => {
     const newRange = [...ageRange];
     newRange[index] = Number(event.target.value);
-    setAgeRange(newRange as number[]);
+    setSelectedAgeRange(newRange as number[]);
   };
 
   useEffect(() => {
@@ -215,7 +222,7 @@ const MatchingPage = () => {
     if (sexIdent.length > 0) {
       getUserData();
     }
-  }, [sexIdent, selectedAgeRange, session, matchingStatus]);
+  }, [sexIdent, ageRange, session, matchingStatus]);
 
   return (
     <div className="w-screen h-screen flex">
@@ -223,7 +230,12 @@ const MatchingPage = () => {
         <>
           <div className="pt-[88px] w-[20%] h-screen bg-gray-100 flex flex-col">
             <div className="py-[30px] w-[100%] border-b-[1px] border-gray-300 flex justify-center items-center">
-              <button className="p-[24px] w-[282px] h-[187px] border-[1px] border-gray-400 text-center bg-gray-200 rounded-[16px] flex flex-col justify-center items-center gap-[4px]">
+              <button
+                onClick={() => setPages("matching")}
+                className={`p-[24px] w-[282px] h-[187px] border-[1px] border-gray-400 text-center bg-gray-200 rounded-[16px] flex flex-col justify-center items-center gap-[4px] ${
+                  pages === "matching" ? "border-purple-500" : ""
+                }`}
+              >
                 <img
                   src="/images/icon-findheart.png"
                   alt="icon-findheart"
@@ -238,12 +250,15 @@ const MatchingPage = () => {
               </button>
             </div>
             <div className="w-[100%] py-[24px] flex justify-center">
-              <div className="w-[281px] h-full flex flex-col justify-center gap-[16px]">
+              <div className="bg-red-200 w-[281px] h-full flex flex-col justify-center gap-[16px]">
                 <div className="text-[24px] text-gray-900 font-[700]">
                   Merry Match!
                 </div>
-                <div className="flex gap-[12px]">
-                  <div className="relative w-[100px] h-[100px]">
+                <button className="flex gap-[12px]">
+                  <div
+                    onClick={() => setPages("merrymatch")}
+                    className="relative w-[100px] h-[100px]"
+                  >
                     <img
                       src="/images/image-loginpage.png"
                       className="w-full h-full rounded-[24px]"
@@ -253,7 +268,7 @@ const MatchingPage = () => {
                       className="absolute bottom-0 left-16"
                     />
                   </div>
-                </div>
+                </button>
               </div>
             </div>
             <div className="w-full h-full flex justify-center">
@@ -264,12 +279,17 @@ const MatchingPage = () => {
 
                 <div className="carousel carousel-vertical rounded-box h-[322px]">
                   <div className="pb-[10px] carousel-item">
-                    <div className="px-[12px] py-[16px] w-full bg-gray-100 border-[1px] border-purple-500 rounded-[16px] flex gap-[12px]">
+                    <button
+                      onClick={() => setPages("chatting")}
+                      className={`px-[12px] py-[16px] w-full bg-gray-100 border-[1px]  rounded-[16px] flex gap-[12px] ${
+                        pages === "chatting" ? "border-purple-500" : ""
+                      }`}
+                    >
                       <img
                         src="/images/image-loginpage.png"
                         className="w-[60px] h-[60px] rounded-[99px]"
                       />
-                      <div className="flex flex-col gap-[8px]">
+                      <div className="flex flex-col items-start gap-[8px]">
                         <div className="text-[16px] font-[400] text-gray-900">
                           name
                         </div>
@@ -277,7 +297,7 @@ const MatchingPage = () => {
                           current chat
                         </div>
                       </div>
-                    </div>
+                    </button>
                   </div>
 
                   <div className="pb-[10px] carousel-item">
@@ -300,192 +320,210 @@ const MatchingPage = () => {
               </div>
             </div>
           </div>
-          <div className="pt-[88px] w-[65%] h-screen bg-BG">
-            {userData && userData.length > 0 ? (
-              <>
-                <div className="w-full h-full flex flex-col justify-center items-center overflow-visible">
-                  <Swiper
-                    slidesPerView={1.75}
-                    centeredSlides={true}
-                    spaceBetween={200}
-                    onSlideChange={(swiper) =>
-                      setActiveIndex(swiper.activeIndex)
-                    }
-                    ref={swiperRef}
-                    className="w-[100%] h-[80%] overflow-visible"
-                  >
-                    {userData.map((data, index_data) => (
-                      <SwiperSlide
-                        key={index_data}
-                        className="overflow-visible"
+
+          {pages === "matching" || pages === "merrymatch" ? (
+            <>
+              <div className="pt-[88px] w-[65%] h-screen bg-BG">
+                {pages === "matching" ? (
+                  userData && userData.length > 0 ? (
+                    <div className="w-full h-full flex flex-col justify-center items-center overflow-visible">
+                      <Swiper
+                        slidesPerView={1.75}
+                        centeredSlides={true}
+                        spaceBetween={200}
+                        onSlideChange={(swiper) =>
+                          setActiveIndex(swiper.activeIndex)
+                        }
+                        ref={swiperRef}
+                        className="w-[100%] h-[80%] overflow-visible"
                       >
-                        <div
-                          className={`relative w-[110%] h-[90%] transition-all duration-500 ${
-                            activeIndex === index_data
-                              ? "scale-100 z-20"
-                              : "scale-90 z-10 opacity-30"
-                          }`}
-                        >
-                          <img
-                            src={data.image[0].url}
-                            alt={data.name}
-                            className="w-[100%] h-[100%] rounded-[32px]"
-                          />
+                        {userData.map((data, index_data) => (
+                          <SwiperSlide
+                            key={index_data}
+                            className="overflow-visible"
+                          >
+                            <div
+                              className={`relative w-[110%] h-[90%] transition-all duration-500 ${
+                                activeIndex === index_data
+                                  ? "scale-100 z-20"
+                                  : "scale-90 z-10 opacity-30"
+                              }`}
+                            >
+                              <img
+                                src={data.image[0].url}
+                                alt={data.name}
+                                className="w-[100%] h-[100%] rounded-[32px]"
+                              />
 
-                          <div className="absolute bottom-0 bg-gradient-to-t from-[#390741] to-[070941]/0 px-[6%] w-full h-[30%] text-white rounded-[30px] flex justify-between items-center">
-                            <div className="flex items-center gap-[16px]">
-                              <span className="flex gap-[8px]">
-                                <span className="text-[32px] font-[700]">
-                                  {data.name}
-                                </span>
-                                <span className="text-[32px] font-[700]">
-                                  {calculateAge(data.dateOfBirth)}
-                                </span>
-                              </span>
+                              <div className="absolute bottom-0 bg-gradient-to-t from-[#390741] to-[070941]/0 px-[6%] w-full h-[30%] text-white rounded-[30px] flex justify-between items-center">
+                                <div className="flex items-center gap-[16px]">
+                                  <span className="flex gap-[8px]">
+                                    <span className="text-[32px] font-[700]">
+                                      {data.name}
+                                    </span>
+                                    <span className="text-[32px] font-[700]">
+                                      {calculateAge(data.dateOfBirth)}
+                                    </span>
+                                  </span>
 
-                              <button className="w-[32px] h-[32px] text-[20px] bg-white/20 rounded-[100%] flex justify-center items-center active:text-[18px]">
-                                <AiFillEye />
-                              </button>
+                                  <button className="w-[32px] h-[32px] text-[20px] bg-white/20 rounded-[100%] flex justify-center items-center active:text-[18px]">
+                                    <AiFillEye />
+                                  </button>
+                                </div>
+
+                                <div className="flex">
+                                  <button
+                                    onClick={handlePrevSlide}
+                                    className="w-[40px] text-[24px] active:text-[23px]"
+                                  >
+                                    <FaArrowLeft />
+                                  </button>
+                                  <button
+                                    onClick={handleNextSlide}
+                                    className="w-[40px] text-[24px] active:text-[23px]"
+                                  >
+                                    <FaArrowRight />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {!hideButtons[index_data] && (
+                                <div className="absolute bottom-[-40px] z-100 w-[100%] flex justify-center overflow-visible">
+                                  <div className="flex gap-[24px]">
+                                    <button
+                                      onClick={() => handleRemoveUser(data._id)}
+                                      className="w-[80px] h-[80px] text-[64px] text-gray-700 bg-white rounded-[24px] flex justify-center items-center active:text-[63px]"
+                                    >
+                                      <IoClose />
+                                    </button>
+                                    <button
+                                      onClick={createMatching}
+                                      className="w-[80px] h-[80px] text-[48px] text-red-500 bg-white rounded-[24px] flex justify-center items-center active:text-[47px]"
+                                    >
+                                      <IoHeart />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
+                          </SwiperSlide>
+                        ))}
+                      </Swiper>
+                      <div>1/20</div>
+                    </div>
+                  ) : (
+                    <div className="w-full h-full flex flex-col justify-center items-center">
+                      <p className="text-2xl font-bold text-red-800">
+                        {noUsersFoundMessage}
+                      </p>
+                    </div>
+                  )
+                ) : pages === "merrymatch" ? (
+                  <div className="w-full h-full bg-red-200">
+                    merrymatch page
+                  </div>
+                ) : (
+                  ""
+                )}
+              </div>
 
-                            <div className="flex">
-                              <button
-                                onClick={handlePrevSlide}
-                                className="w-[40px] text-[24px] active:text-[23px]"
-                              >
-                                <FaArrowLeft />
-                              </button>
-                              <button
-                                onClick={handleNextSlide}
-                                className="w-[40px] text-[24px] active:text-[23px]"
-                              >
-                                <FaArrowRight />
-                              </button>
-                            </div>
-                          </div>
-
-                          {!hideButtons[index_data] && (
-                            <div className="absolute bottom-[-40px] z-100 w-[100%] flex justify-center overflow-visible">
-                              <div className="flex gap-[24px]">
-                                <button
-                                  onClick={() => handleRemoveUser(data._id)}
-                                  className="w-[80px] h-[80px] text-[64px] text-gray-700 bg-white rounded-[24px] flex justify-center items-center active:text-[63px]"
-                                >
-                                  <IoClose />
-                                </button>
-                                <button
-                                  onClick={createMatching}
-                                  className="w-[80px] h-[80px] text-[48px] text-red-500 bg-white rounded-[24px] flex justify-center items-center active:text-[47px]"
-                                >
-                                  <IoHeart />
-                                </button>
+              <div className="pt-[88px] w-[15%] h-screen bg-gray-100">
+                <div className="pt-[20px] w-full flex justify-center">
+                  <div className="w-[200px] h-[400px] flex flex-col gap-[60px]">
+                    <div className="flex flex-col gap-[16px]">
+                      <div className="text-[16px] font-[700] text-gray-900">
+                        Sex you interest
+                      </div>
+                      <div className="flex flex-col gap-[16px]">
+                        {sex_Identities.map((genders, index_sex) => {
+                          return (
+                            <div key={index_sex} className="flex gap-[12px]">
+                              <input
+                                type="checkbox"
+                                checked={selectedSexIdent.includes(genders)}
+                                onChange={() => handleCheckboxChange(genders)}
+                                className="checkbox checkbox-secondary"
+                              />
+                              <div className="text-[16px] font-[500] text-gray-700">
+                                {genders}
                               </div>
                             </div>
-                          )}
-                        </div>
-                      </SwiperSlide>
-                    ))}
-                  </Swiper>
-                </div>
-                <div></div>
-              </>
-            ) : (
-              <div className="w-full h-full flex flex-col justify-center items-center">
-                <p className="text-2xl font-bold text-red-800">
-                  {noUsersFoundMessage}
-                </p>
-              </div>
-            )}
-          </div>
-          <div className="pt-[88px] w-[15%] h-screen bg-gray-100">
-            <div className="pt-[20px] w-full flex justify-center">
-              <div className="w-[200px] h-[400px] flex flex-col gap-[60px]">
-                <div className="flex flex-col gap-[16px]">
-                  <div className="text-[16px] font-[700] text-gray-900">
-                    Sex you interest
-                  </div>
-                  <div className="flex flex-col gap-[16px]">
-                    {sex_Identities.map((genders, index_sex) => {
-                      return (
-                        <div key={index_sex} className="flex gap-[12px]">
-                          <input
-                            type="checkbox"
-                            checked={selectedSexIdent.includes(genders)}
-                            onChange={() => handleCheckboxChange(genders)}
-                            className="checkbox checkbox-secondary"
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-[16px]">
+                      <div className="text-[16px] font-[700] text-gray-900">
+                        Age Range
+                      </div>
+                      <div className="w-full flex justify-center">
+                        <Box sx={{ width: "95%" }}>
+                          <Slider
+                            getAriaLabel={() => "Age range"}
+                            value={selectedAgeRange}
+                            onChange={handleAgeRangeChange}
+                            valueLabelDisplay="auto"
+                            min={18}
+                            max={50}
+                            sx={{
+                              color: "pink", // เปลี่ยนสี Slider เป็นสีชมพู
+                              "& .MuiSlider-thumb": {
+                                width: "11px",
+                                height: "11px",
+                                border: "2px solid #A62D82",
+                                backgroundColor: "#DF89C6", // สีชมพูสำหรับ thumb
+                              },
+                              "& .MuiSlider-track": {
+                                backgroundColor: "#A62D82", // สีชมพูสำหรับ track
+                              },
+                            }}
                           />
-                          <div className="text-[16px] font-[500] text-gray-700">
-                            {genders}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-[16px]">
-                  <div className="text-[16px] font-[700] text-gray-900">
-                    Age Range
-                  </div>
-                  <div className="w-full flex justify-center">
-                    <Box sx={{ width: "95%" }}>
-                      <Slider
-                        getAriaLabel={() => "Age range"}
-                        value={ageRange}
-                        onChange={handleAgeRangeChange}
-                        valueLabelDisplay="auto"
-                        min={18}
-                        max={50}
-                        sx={{
-                          color: "pink", // เปลี่ยนสี Slider เป็นสีชมพู
-                          "& .MuiSlider-thumb": {
-                            width: "11px",
-                            height: "11px",
-                            border: "2px solid #A62D82",
-                            backgroundColor: "#DF89C6", // สีชมพูสำหรับ thumb
-                          },
-                          "& .MuiSlider-track": {
-                            backgroundColor: "#A62D82", // สีชมพูสำหรับ track
-                          },
-                        }}
-                      />
-                    </Box>
-                  </div>
+                        </Box>
+                      </div>
 
-                  <div className="flex justify-center items-center gap-[10px]">
-                    <input
-                      type="text"
-                      className="w-[100%] h-[48px] pl-[12px] rounded-[8px] outline-[1px] outline-purple-500"
-                      value={ageRange[0]}
-                      onChange={(e) => handleInputAgeRangeChange(e, 0)}
-                    />
-                    <span> - </span>
-                    <input
-                      type="text"
-                      className="w-[100%] h-[48px] pl-[12px] rounded-[8px] outline-[1px] outline-purple-500"
-                      value={ageRange[1]}
-                      onChange={(e) => handleInputAgeRangeChange(e, 1)}
-                    />
+                      <div className="flex justify-center items-center gap-[10px]">
+                        <input
+                          type="text"
+                          className="w-[100%] h-[48px] pl-[12px] rounded-[8px] outline-[1px] outline-purple-500"
+                          value={selectedAgeRange[0]}
+                          onChange={(e) => handleInputAgeRangeChange(e, 0)}
+                        />
+                        <span> - </span>
+                        <input
+                          type="text"
+                          className="w-[100%] h-[48px] pl-[12px] rounded-[8px] outline-[1px] outline-purple-500"
+                          value={selectedAgeRange[1]}
+                          onChange={(e) => handleInputAgeRangeChange(e, 1)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="border-t-[1px] border-gray-300 flex justify-center gap-[16px]">
+                  <div className="pt-[20px] h-[80px] flex justify-center items-center gap-[16px]">
+                    <button
+                      onClick={handleClear}
+                      className="w-[40px] h-[20px] text-[16px] font-[700] text-red-500"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      onClick={handleSearch}
+                      className="w-[99px] h-[48px] text-[16px] font-[700] text-white bg-red-500 rounded-[99px]"
+                    >
+                      Search
+                    </button>
                   </div>
                 </div>
               </div>
+            </>
+          ) : pages === "chatting" ? (
+            <div className="w-[80%] bg-red-200">
+              <div className="text-[32px] text-white">chatting page</div>
             </div>
-            <div className="border-t-[1px] border-gray-300 flex justify-center gap-[16px]">
-              <div className="pt-[20px] h-[80px] flex justify-center items-center gap-[16px]">
-                <button
-                  onClick={handleClear}
-                  className="w-[40px] h-[20px] text-[16px] font-[700] text-red-500"
-                >
-                  Clear
-                </button>
-                <button
-                  onClick={handleSearch}
-                  className="w-[99px] h-[48px] text-[16px] font-[700] text-white bg-red-500 rounded-[99px]"
-                >
-                  Search
-                </button>
-              </div>
-            </div>
-          </div>
+          ) : (
+            ""
+          )}
         </>
       )}
     </div>

@@ -33,7 +33,7 @@ export function useFormContext(): FormContextType {
 export const FormRegister: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState<Number>(1);
   const [allData, setAllData] = useState<FormDataType>({
     name: "",
     dateOfBirth: "",
