@@ -26,9 +26,18 @@ interface UserData {
   image: { url: string }[];
 }
 
+interface MatchingData {
+  id: string;
+  username: string;
+  name: string;
+  image: { url: string; publicId: string }[];
+  status: "pending" | "matched" | "rejected";
+}
+
 const MatchingPage = () => {
   const [matchingId, setMatchingId] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData[] | null>(null);
+  const [matchingData, setMatchingData] = useState<MatchingData[]>([]);
   const [matchingStatus, setMatchingStatus] = useState<
     "pending" | "matched" | "rejected"
   >("pending");
@@ -76,8 +85,17 @@ const MatchingPage = () => {
   const getMatchingData = async () => {
     try {
       const response = await axios.get("/api/matching/index");
-      setUserData(response.data);
-      setNoUsersFoundMessage("User not found");
+      const data = response.data;
+
+      if (data && data[0]?.receiverUser) {
+        setMatchingData(data[0].receiverUser);
+        setNoUsersFoundMessage(null);
+      } else {
+        setMatchingData([]);
+        setNoUsersFoundMessage("User not found");
+      }
+
+      console.log("matching user data fetch: ", response.data);
     } catch (error) {
       console.log("Error fetching matching: ", error);
     }
@@ -225,10 +243,8 @@ const MatchingPage = () => {
   };
 
   useEffect(() => {
-    if (pages === "merrymatch") {
-      getMatchingData();
-    }
-  }, [pages]);
+    getMatchingData();
+  }, []);
 
   useEffect(() => {
     if (session) {
@@ -266,33 +282,41 @@ const MatchingPage = () => {
               </button>
             </div>
             <div className="w-[100%] py-[24px] flex justify-center">
-              <div className="bg-red-200 w-[281px] h-full flex flex-col justify-center gap-[16px]">
+              <div className="w-[281px] h-full flex flex-col justify-center gap-[16px]">
                 <div className="text-[24px] text-gray-900 font-[700]">
                   Merry Match!
                 </div>
-                <button
-                  className={`flex gap-[12px] ${
-                    pages === "merrymatch"
-                      ? "border-[1px] border-purple-500"
-                      : ""
-                  }`}
-                >
-                  <div
-                    onClick={() => setPages("merrymatch")}
-                    className="relative w-[100px] h-[100px]"
-                  >
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-[24px]"
-                    />
-                    <img
-                      src="/images/icon-doubleheart.png"
-                      className="absolute bottom-0 left-16"
-                    />
+
+                {matchingData && matchingData.length > 0 ? (
+                  <div className="carousel gap-[12px]">
+                    {matchingData.map((matchdata, index_matchdata) => {
+                      return matchdata?.status === "matched" ? (
+                        <button key={index_matchdata} className="carousel-item">
+                          <div
+                            onClick={() => setPages("merrymatch")}
+                            className="relative w-[100px] h-[100px]"
+                          >
+                            <img
+                              src={matchdata?.image[0].url}
+                              className="w-full h-full rounded-[24px]"
+                            />
+                            <img
+                              src="/images/icon-doubleheart.png"
+                              className="absolute bottom-0 left-16"
+                            />
+                          </div>
+                        </button>
+                      ) : null;
+                    })}
                   </div>
-                </button>
+                ) : (
+                  <div className="text-[14px] font-[400] text-gray-900">
+                    No one matched ?
+                  </div>
+                )}
               </div>
             </div>
+
             <div className="w-full h-full flex justify-center">
               <div className="pt-[24px] w-[281px] flex flex-col gap-[16px]">
                 <div className="text-[24px] font-[700] text-gray-900">
