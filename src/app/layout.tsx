@@ -4,7 +4,6 @@ import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { getServerSession } from "next-auth";
-import Navbar from "@/components/navbar/Navbar";
 import AuthProvider from "@/utils/session_Provider";
 
 const nunito = Nunito({ subsets: ["latin"] });
@@ -25,7 +24,6 @@ export default async function RootLayout({
     <AuthProvider session={session}>
       <html lang="en">
         <body className={nunito.className}>
-          <Navbar session={session} />
           <div>{children}</div>
           <ToastContainer position="top-center" />
         </body>

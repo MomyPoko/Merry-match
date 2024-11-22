@@ -52,6 +52,14 @@ export async function POST(req: NextRequest) {
           id: requester._id,
           username: requester.username,
           name: requester.name,
+          birthday: receiver.dateOfBirth,
+          country: receiver.country,
+          state: receiver.state,
+          sexPref: receiver.sexPref,
+          sexIdent: receiver.sexIdent,
+          racailPref: receiver.racailPref,
+          meeting: receiver.meeting,
+          hobbies: receiver.hobbies,
           image: requester.image,
         },
         receiverUser: [
@@ -98,10 +106,19 @@ export async function GET(req: NextRequest) {
 
     const currentUserId = session.user.id;
 
-    const matchingData = await MatchingStatus.find({
+    const sentRequests = await MatchingStatus.find({
       "requesterUser.id": currentUserId,
     });
-    return NextResponse.json(matchingData, { status: 200 });
+
+    const receivedRequests = await MatchingStatus.find({
+      "receiverUser.id": currentUserId,
+    });
+
+    console.log("Matching get data: ", sentRequests, receivedRequests);
+    return NextResponse.json(
+      { sentRequests, receivedRequests },
+      { status: 200 }
+    );
   } catch (error) {
     console.log("Error fetching matching data: ", error);
     return NextResponse.json(

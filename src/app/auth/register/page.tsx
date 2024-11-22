@@ -30,7 +30,7 @@ interface ValidationErrors {
   country?: string;
   sexPref?: string;
   sexIdent?: string;
-  recailPref?: string;
+  racailPref?: string;
   meeting?: string;
   hobbies?: string;
   image?: string;
@@ -86,7 +86,7 @@ const Register: React.FC = () => {
     country: "",
     sexPref: "",
     sexIdent: "",
-    recailPref: "",
+    racailPref: "",
     meeting: "",
     hobbies: "",
     image: "",

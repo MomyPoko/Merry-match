@@ -17,6 +17,38 @@ const matchingSchema = new Schema(
         type: String,
         required: true,
       },
+      dateOfBirth: {
+        type: String,
+        required: true,
+      },
+      country: {
+        type: String,
+        required: true,
+      },
+      state: {
+        type: String,
+        required: true,
+      },
+      sexPref: {
+        type: String,
+        required: true,
+      },
+      sexIdent: {
+        type: String,
+        required: true,
+      },
+      racailPref: {
+        type: String,
+        required: true,
+      },
+      meeting: {
+        type: String,
+        required: true,
+      },
+      hobbies: {
+        type: String,
+        required: true,
+      },
       image: [
         {
           url: { type: String },
