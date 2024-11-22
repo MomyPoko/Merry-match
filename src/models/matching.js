@@ -9,46 +9,17 @@ const matchingSchema = new Schema(
         ref: "User",
         required: true,
       },
-      username: {
-        type: String,
-        required: true,
-      },
-      name: {
-        type: String,
-        required: true,
-      },
-      dateOfBirth: {
-        type: String,
-        required: true,
-      },
-      country: {
-        type: String,
-        required: true,
-      },
-      state: {
-        type: String,
-        required: true,
-      },
-      sexPref: {
-        type: String,
-        required: true,
-      },
-      sexIdent: {
-        type: String,
-        required: true,
-      },
-      racailPref: {
-        type: String,
-        required: true,
-      },
-      meeting: {
-        type: String,
-        required: true,
-      },
-      hobbies: {
-        type: String,
-        required: true,
-      },
+      username: String,
+
+      name: String,
+      dateOfBirth: String,
+      country: String,
+      state: String,
+      sexPref: String,
+      sexIdent: String,
+      racailPref: String,
+      meeting: String,
+      hobbies: String,
       image: [
         {
           url: { type: String },

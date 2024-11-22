@@ -19,13 +19,13 @@ interface MatchingRequest {
   username: string;
   name: string;
   image: { url: string; publicId: string }[];
+  status?: "pending" | "matched" | "rejected";
 }
 
 interface MatchingData {
   id: string;
   requesterUser: MatchingRequest;
   receiverUser: MatchingRequest[];
-  status: "pending" | "matched" | "rejected";
 }
 
 const Navbar = ({ session }: { session: Session | null }) => {
@@ -48,6 +48,15 @@ const Navbar = ({ session }: { session: Session | null }) => {
     }
   };
 
+  const handleShowModal = () => {
+    const modal = document.getElementById("my_modal_3") as HTMLDialogElement;
+    if (modal) {
+      modal.showModal();
+    } else {
+      console.error("Modal not found!");
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated") {
       getMatchingData(); // เรียก API เฉพาะเมื่อผู้ใช้ล็อกอินแล้ว
@@ -59,17 +68,6 @@ const Navbar = ({ session }: { session: Session | null }) => {
     }
   }, [status]);
 
-  // useEffect(() => {
-  //   if (status === "loading") {
-  //     // หากยังโหลดอยู่ ไม่ต้องทำอะไร
-  //     return;
-  //   }
-
-  // if (!session && status === "unauthenticated") {
-  //   router.push("/auth/login"); // เปลี่ยนไปหน้า login หากไม่มี session
-  // }
-  // }, [status, session, router]);
-  // console.log("Session status: ", status, "Session data: ", clientSession);
   return (
     <div className="sticky top-0 z-50 px-[200px] border-[1px] w-full h-[88px] bg-white flex flex-row justify-between items-center shadow-md">
       <Link href="/">
@@ -146,11 +144,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
                             <button
                               key={index_invitation}
                               className="carousel-item px-[14px] py-[12px] w-full border-b-[1px] flex items-start gap-[10px] hover:bg-gray-100"
-                              onClick={() =>
-                                document
-                                  .getElementById("my_modal_3")
-                                  .showModal()
-                              }
+                              onClick={handleShowModal}
                             >
                               <span className="w-[40px] h-[40px] relative">
                                 <img
