@@ -5,10 +5,10 @@ import { getServerSession } from "next-auth";
 async function login() {
   const session = await getServerSession();
   return (
-    <>
+    <div>
       <Navbar session={session} />
       <LoginPage />
-    </>
+    </div>
   );
 }
 
