@@ -64,8 +64,8 @@ const LoginPage = () => {
       onSubmit={handleSubmit}
     >
       {({ isSubmitting }) => (
-        <Form className="w-full flex justify-center">
-          <div className=" mt-[80px] w-[1150px] flex justify-between items-center">
+        <Form className="w-full h-full flex justify-center items-center">
+          <div className="w-[1150px] flex justify-between items-center">
             <img src="/images/image-loginpage.png" alt="image-loginpage" />
             <div className="w-[455px] flex flex-col gap-[40px]">
               <div className="flex flex-col gap-[8px]">
