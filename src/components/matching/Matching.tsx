@@ -95,7 +95,7 @@ const MatchingPage = () => {
         setNoUsersFoundMessage("User not found");
       }
 
-      console.log("matching user data fetch: ", data);
+      console.log("matchingpage user data fetch: ", data);
     } catch (error) {
       console.log("Error fetching matching: ", error);
     }

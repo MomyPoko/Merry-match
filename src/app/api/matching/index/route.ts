@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
           state: requester.state,
           sexPref: requester.sexPref,
           sexIdent: requester.sexIdent,
-          racailPref: requester.racailPref,
+          racialPref: requester.recailPref,
           meeting: requester.meeting,
           hobbies: requester.hobbies,
           image: requester.image,

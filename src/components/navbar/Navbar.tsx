@@ -1,7 +1,9 @@
 "use client";
 
+import { Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 import { signOut, useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Session } from "next-auth";
 import { IoIosCube } from "react-icons/io";
@@ -13,6 +15,10 @@ import { FaBell } from "react-icons/fa6";
 import Link from "next/link";
 import Avatar from "@mui/material/Avatar";
 import axios from "axios";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 interface MatchingRequest {
   id: string;
@@ -30,8 +36,13 @@ interface MatchingData {
 
 const Navbar = ({ session }: { session: Session | null }) => {
   const [matchingData, setMatchingData] = useState<MatchingData[]>([]);
+  const [selectedUser, setSelectedUser] = useState<MatchingRequest | null>(
+    null
+  );
+  const [activeIndex, setActiveIndex] = useState<number>(0);
 
   const { data: clientSession, status } = useSession();
+  const swiperRef = useRef<any>(null);
   const router = useRouter();
 
   const userImage = clientSession?.user?.image?.[0]?.url;
@@ -48,12 +59,25 @@ const Navbar = ({ session }: { session: Session | null }) => {
     }
   };
 
-  const handleShowModal = () => {
+  const handleShowModal = (user: MatchingRequest) => {
     const modal = document.getElementById("my_modal_3") as HTMLDialogElement;
+    setSelectedUser(user);
     if (modal) {
       modal.showModal();
     } else {
       console.error("Modal not found!");
+    }
+  };
+
+  const handleNextSlide = () => {
+    if (swiperRef.current && swiperRef.current.swiper) {
+      swiperRef.current.swiper.slideNext();
+    }
+  };
+
+  const handlePrevSlide = () => {
+    if (swiperRef.current && swiperRef.current.swiper) {
+      swiperRef.current.swiper.slidePrev();
     }
   };
 
@@ -132,69 +156,55 @@ const Navbar = ({ session }: { session: Session | null }) => {
                   {matchingData.length > 0 ? (
                     <div className="carousel carousel-vertical rounded-box h-[222px]">
                       {matchingData.map((invitation, index_invitation) => {
-                        const matchedUsers = invitation.receiverUser.filter(
-                          (user) => user.status === "matched"
-                        );
+                        const requesterStatus = invitation.receiverUser.find(
+                          (user) => user.id === clientSession?.user?.id
+                        )?.status;
 
-                        const pendingUsers = invitation.receiverUser.filter(
-                          (user) => user.status === "pending"
-                        );
                         return (
-                          <>
-                            <button
-                              key={index_invitation}
-                              className="carousel-item px-[14px] py-[12px] w-full border-b-[1px] flex items-start gap-[10px] hover:bg-gray-100"
-                              onClick={handleShowModal}
-                            >
-                              <span className="w-[40px] h-[40px] relative">
+                          <button
+                            key={index_invitation}
+                            className="carousel-item px-[14px] py-[12px] w-full border-b-[1px] flex items-start gap-[10px] hover:bg-gray-100"
+                            onClick={() =>
+                              handleShowModal(invitation.requesterUser)
+                            }
+                          >
+                            <span className="w-[40px] h-[40px] relative">
+                              <img
+                                src={invitation.requesterUser.image[0].url}
+                                className="absolute w-[40px] h-[40px] rounded-[100%]"
+                              />
+                              {requesterStatus === "pending" ? (
                                 <img
-                                  src={invitation.requesterUser.image[0].url}
-                                  className="absolute w-[40px] h-[40px] rounded-[100%]"
+                                  src="/images/icon-oneheart.png"
+                                  className="absolute right-0 bottom-0 w-[10px] h-[10px]"
+                                  alt="Pending"
                                 />
-                                {matchedUsers.length > 0 ? (
-                                  <img
-                                    src="/images/icon-doubleheart.png"
-                                    className="absolute right-0 bottom-0 w-[20px] h-[10px]"
-                                    alt="Matched"
-                                  />
-                                ) : pendingUsers.length > 0 ? (
-                                  <img
-                                    src="/images/icon-oneheart.png"
-                                    className="absolute right-0 bottom-0 w-[10px] h-[10px]"
-                                    alt="Pending"
-                                  />
-                                ) : null}
-                              </span>
+                              ) : requesterStatus === "matched" ? (
+                                <img
+                                  src="/images/icon-doubleheart.png"
+                                  className="absolute right-0 bottom-0 w-[20px] h-[10px]"
+                                  alt="Matched"
+                                />
+                              ) : null}
+                            </span>
+                            {requesterStatus === "pending" ? (
                               <span className="text-left flex flex-col justify-start">
                                 <div>
-                                  {matchedUsers.length > 0
-                                    ? `'${invitation.requesterUser.name}' Merry you back`
-                                    : `'${invitation.requesterUser.name}' Just Merry you`}
+                                  '{invitation.requesterUser.name}' Just Merry
+                                  you`
                                 </div>
-                                <div>
-                                  {matchedUsers.length > 0
-                                    ? "Let’s start conversation now"
-                                    : "Click here to see profile"}
-                                </div>
+                                <div>Click here to see profile</div>
                               </span>
-                            </button>
-
-                            {pendingUsers.length > 0 ? (
-                              <dialog id="my_modal_3" className="modal">
-                                <div className="modal-box">
-                                  <form method="dialog">
-                                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                                      ✕
-                                    </button>
-                                  </form>
-                                  <h3 className="font-bold text-lg">Hello!</h3>
-                                  <p className="py-4">
-                                    Press ESC key or click on ✕ button to close
-                                  </p>
+                            ) : requesterStatus === "matched" ? (
+                              <span className="text-left flex flex-col justify-start">
+                                <div>
+                                  '{invitation.requesterUser.name}' Merry you
+                                  back`
                                 </div>
-                              </dialog>
+                                <div>Let’s start conversation now</div>
+                              </span>
                             ) : null}
-                          </>
+                          </button>
                         );
                       })}
                     </div>
@@ -203,6 +213,73 @@ const Navbar = ({ session }: { session: Session | null }) => {
                   )}
                 </div>
               </div>
+            )}
+
+            {selectedUser && (
+              <dialog id="my_modal_3" className="modal">
+                <div
+                  className="modal-box"
+                  style={{ width: "1000px", maxWidth: "100%", height: "650px" }}
+                >
+                  <form method="dialog">
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+                      ✕
+                    </button>
+                  </form>
+                  <div className="bg-red-800 w-full h-full flex justify-between">
+                    <Swiper
+                      slidesPerView={1.75}
+                      centeredSlides={true}
+                      ref={swiperRef}
+                      className="bg-red-300 w-full h-full overflow-hidden"
+                    >
+                      <SwiperSlide>
+                        <div>
+                          {selectedUser.image.map((image, index_image) => (
+                            <img key={index_image} src={image.url} />
+                          ))}
+                        </div>
+                      </SwiperSlide>
+                    </Swiper>
+                    <div className="text-white">
+                      <div>
+                        <div>
+                          <span>{selectedUser.name}</span>
+                          <span>24</span>
+                        </div>
+                        <div>
+                          <img src="" alt="" />
+                          <span>
+                            {selectedUser.state},{selectedUser.country}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <div>
+                          <span>Sexual identities</span>
+                          <span>{selectedUser.sexIdent}</span>
+                        </div>
+                        <div>
+                          <span>Sexual preferences</span>
+                          <span>{selectedUser.sexPref}</span>
+                        </div>
+                        <div>
+                          <span>Racial preferences</span>
+                          <span></span>
+                        </div>
+                        <div>
+                          <span>Meeting interests</span>
+                          <span>{selectedUser.meeting}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div>hobies and interest</div>
+                        <div></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </dialog>
             )}
 
             <div className="dropdown dropdown-end">

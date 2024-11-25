@@ -10,7 +10,6 @@ const matchingSchema = new Schema(
         required: true,
       },
       username: String,
-
       name: String,
       dateOfBirth: String,
       country: String,

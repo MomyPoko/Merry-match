@@ -18,7 +18,7 @@ interface FormDataType {
   confirmPassword: string;
   sexIdent: string;
   sexPref: string;
-  racailPref: string;
+  racialPref: string;
   meeting: string;
   hobbies: string;
   image: { url: string; publicId: string }[];
@@ -45,7 +45,7 @@ export const FormRegister: React.FC<{ children: ReactNode }> = ({
     confirmPassword: "",
     sexIdent: "",
     sexPref: "",
-    racailPref: "",
+    racialPref: "",
     meeting: "",
     hobbies: "",
     image: [],

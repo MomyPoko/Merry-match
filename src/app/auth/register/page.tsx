@@ -29,7 +29,7 @@ interface ValidationErrors {
   country?: string;
   sexPref?: string;
   sexIdent?: string;
-  racailPref?: string;
+  racialPref?: string;
   meeting?: string;
   hobbies?: string;
   image?: string;
@@ -85,7 +85,7 @@ const Register: React.FC = () => {
     country: "",
     sexPref: "",
     sexIdent: "",
-    racailPref: "",
+    racialPref: "",
     meeting: "",
     hobbies: "",
     image: "",
@@ -317,7 +317,7 @@ const Register: React.FC = () => {
     results.append("state", getStateName(allData.state));
     results.append("sexIdent", allData.sexIdent);
     results.append("sexPref", allData.sexPref);
-    results.append("racailPref", allData.racailPref);
+    results.append("racialPref", allData.racialPref);
     results.append("meeting", allData.meeting);
     results.append("hobbies", allData.hobbies);
     Object.keys(avatarImage).forEach((key_image) => {
@@ -658,9 +658,9 @@ const Register: React.FC = () => {
                     <div>Racial preferences</div>
                     <select
                       id="racialPref"
-                      value={allData.racailPref}
+                      value={allData.racialPref}
                       onChange={(e) => {
-                        updateFormData({ racailPref: e.target.value });
+                        updateFormData({ racialPref: e.target.value });
                       }}
                       className="p-[12px_16px_12px_12px] w-[100%] h-[50px] border-[1px] border-gray-400 rounded-[8px] outline-none"
                     >
