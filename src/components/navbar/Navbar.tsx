@@ -225,7 +225,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
               </button>
               <div
                 tabIndex={0}
-                className="dropdown-content menu bg-base-100 rounded-box z-[1] w-[250px] p-2 shadow"
+                className="dropdown-content menu bg-base-100 rounded-box z-[1] w-[275px] p-2 shadow"
               >
                 {matchingData.receivedRequests.length > 0 ? (
                   <div className="carousel carousel-vertical rounded-box h-[222px]">
@@ -238,7 +238,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
                         return (
                           <button
                             key={index_invitation}
-                            className="carousel-item px-[14px] py-[12px] w-full border-b-[1px] flex items-start gap-[10px] hover:bg-gray-100"
+                            className="carousel-item px-[14px] py-[12px] w-[230px] border-b-[1px] flex items-start gap-[10px] hover:bg-gray-100"
                             onClick={() =>
                               handleShowModal(invitation.requesterUser)
                             }
@@ -262,21 +262,22 @@ const Navbar = ({ session }: { session: Session | null }) => {
                                 />
                               ) : null}
                             </span>
+
                             {requesterStatus === "pending" ? (
                               <span className="text-left flex flex-col justify-start">
                                 <div>
-                                  '{invitation.requesterUser.name}' Just Merry
-                                  you`
+                                  &apos;{invitation.requesterUser.name}&apos;
+                                  Just Merry you!
                                 </div>
                                 <div>Click here to see profile</div>
                               </span>
                             ) : requesterStatus === "matched" ? (
                               <span className="text-left flex flex-col justify-start">
                                 <div>
-                                  '{invitation.requesterUser.name}' Merry you
-                                  back`
+                                  &apos;{invitation.requesterUser.name}&apos;
+                                  Merry you back!
                                 </div>
-                                <div>Let’s start conversation now</div>
+                                <div>Let&apos;s start conversation now</div>
                               </span>
                             ) : null}
                           </button>
