@@ -40,7 +40,7 @@ const userSchema = new Schema(
       type: String,
       require: false,
     },
-    recailPref: {
+    racialPref: {
       type: String,
       require: false,
     },

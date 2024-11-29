@@ -16,7 +16,7 @@ const matchingSchema = new Schema(
       state: String,
       sexPref: String,
       sexIdent: String,
-      racailPref: String,
+      racialPref: String,
       meeting: String,
       hobbies: String,
       image: [

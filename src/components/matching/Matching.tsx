@@ -36,12 +36,12 @@ interface MatchingData {
 }
 
 const MatchingPage = () => {
-  const [matchingId, setMatchingId] = useState<string | null>(null);
+  // const [matchingId, setMatchingId] = useState<string | null>(null);
+  // const [matchingStatus, setMatchingStatus] = useState<
+  //   "pending" | "matched" | "rejected"
+  // >("pending");
   const [userData, setUserData] = useState<UserData[] | null>(null);
   const [matchingData, setMatchingData] = useState<MatchingData[]>([]);
-  const [matchingStatus, setMatchingStatus] = useState<
-    "pending" | "matched" | "rejected"
-  >("pending");
   const [selectedSexIdent, setSelectedSexIdent] = useState<string[]>([]);
   const [sexIdent, setSexIdent] = useState<string[]>([]);
   const [noUsersFoundMessage, setNoUsersFoundMessage] = useState<string | null>(
@@ -76,7 +76,7 @@ const MatchingPage = () => {
           prevUserData?.filter((user) => user._id !== userId) || null
       );
 
-      console.log("Matching created: ", userId);
+      // console.log("Matching created: ", userId);
     } catch (error) {
       console.log("Error creating matching: ", error);
     }
@@ -95,27 +95,27 @@ const MatchingPage = () => {
         setNoUsersFoundMessage("User not found");
       }
 
-      console.log("matchingpage user data fetch: ", data);
+      // console.log("matchingpage user data fetch: ", data);
     } catch (error) {
       console.log("Error fetching matching: ", error);
     }
   };
 
-  const updateMatching = async (
-    status: "matched" | "rejected",
-    receiverId: string
-  ) => {
-    try {
-      const response = await axios.put(`api/matching/${matchingId}`, {
-        updateStatus: status,
-        receiverId,
-      });
-      setMatchingStatus(status);
-      console.log("Matching status update: ", response.data);
-    } catch (error) {
-      console.log("Error updating matching: ", error);
-    }
-  };
+  // const updateMatching = async (
+  //   status: "matched" | "rejected",
+  //   receiverId: string
+  // ) => {
+  //   try {
+  //     const response = await axios.put(`api/matching/${matchingId}`, {
+  //       updateStatus: status,
+  //       receiverId,
+  //     });
+  //     setMatchingStatus(status);
+  //     console.log("Matching status update: ", response.data);
+  //   } catch (error) {
+  //     console.log("Error updating matching: ", error);
+  //   }
+  // };
 
   const getUserData = async () => {
     try {
@@ -138,7 +138,7 @@ const MatchingPage = () => {
       setUserData(response.data);
       // setHideButtons(Array(response.data.length).fill(false));
 
-      console.log("Users data fetched: ", response.data);
+      // console.log("Users data fetched: ", response.data);
     } catch (error: any) {
       if (error.response?.status === 404) {
         setNoUsersFoundMessage("User not found");
@@ -259,7 +259,7 @@ const MatchingPage = () => {
     if (sexIdent.length > 0) {
       getUserData();
     }
-  }, [sexIdent, ageRange, session, matchingStatus]);
+  }, [sexIdent, ageRange, session]);
 
   return (
     <div className="w-full h-full flex overflow-hidden">

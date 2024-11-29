@@ -52,12 +52,12 @@ export async function POST(req: NextRequest) {
           id: requester._id,
           username: requester.username,
           name: requester.name,
-          birthday: requester.dateOfBirth,
+          dateOfBirth: requester.dateOfBirth,
           country: requester.country,
           state: requester.state,
           sexPref: requester.sexPref,
           sexIdent: requester.sexIdent,
-          racialPref: requester.recailPref,
+          racialPref: requester.racialPref,
           meeting: requester.meeting,
           hobbies: requester.hobbies,
           image: requester.image,
@@ -112,9 +112,10 @@ export async function GET(req: NextRequest) {
 
     const receivedRequests = await MatchingStatus.find({
       "receiverUser.id": currentUserId,
-    });
+    }).sort({ updatedAt: -1 });
 
-    console.log("Matching get data: ", sentRequests, receivedRequests);
+    console.log("Matching get data sentRequests: ", sentRequests);
+    console.log("Matching get data receivedRequests: ", receivedRequests);
     return NextResponse.json(
       { sentRequests, receivedRequests },
       { status: 200 }

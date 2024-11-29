@@ -12,6 +12,11 @@ import { AiFillHeart } from "react-icons/ai";
 import { BsPeopleFill } from "react-icons/bs";
 import { IoIosLogOut } from "react-icons/io";
 import { FaBell } from "react-icons/fa6";
+import { FaArrowLeft } from "react-icons/fa6";
+import { FaArrowRight } from "react-icons/fa6";
+import { HiLocationMarker } from "react-icons/hi";
+import { IoClose } from "react-icons/io5";
+import { IoHeart } from "react-icons/io5";
 import Link from "next/link";
 import Avatar from "@mui/material/Avatar";
 import axios from "axios";
@@ -24,22 +29,36 @@ interface MatchingRequest {
   id: string;
   username: string;
   name: string;
+  state: string;
+  country: string;
+  sexIdent: string;
+  sexPref: string;
+  racialPref: string;
+  meeting: string;
+  hobbies: string;
   image: { url: string; publicId: string }[];
   status?: "pending" | "matched" | "rejected";
 }
 
 interface MatchingData {
   id: string;
+  _id: string;
   requesterUser: MatchingRequest;
   receiverUser: MatchingRequest[];
 }
 
 const Navbar = ({ session }: { session: Session | null }) => {
-  const [matchingData, setMatchingData] = useState<MatchingData[]>([]);
+  const [matchingData, setMatchingData] = useState<{
+    sentRequests: MatchingData[];
+    receivedRequests: MatchingData[];
+  }>({ sentRequests: [], receivedRequests: [] });
   const [selectedUser, setSelectedUser] = useState<MatchingRequest | null>(
     null
   );
   const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [matchingStatus, setMatchingStatus] = useState<
+    "pending" | "matched" | "rejected"
+  >("pending");
 
   const { data: clientSession, status } = useSession();
   const swiperRef = useRef<any>(null);
@@ -51,7 +70,10 @@ const Navbar = ({ session }: { session: Session | null }) => {
   const getMatchingData = async () => {
     try {
       const response = await axios.get("/api/matching/index");
-      setMatchingData(response.data.receivedRequests);
+      const { sentRequests, receivedRequests } = response.data;
+
+      setMatchingData({ sentRequests, receivedRequests });
+      // เดี๋ยวเราต้องใช้ receivedRequests เพิ่มเลือกเอาว่า array ไหนมี _id ที่เราต้องใช้
 
       console.log("Matching user data fetch: ", response.data);
     } catch (error) {
@@ -59,14 +81,60 @@ const Navbar = ({ session }: { session: Session | null }) => {
     }
   };
 
-  const handleShowModal = (user: MatchingRequest) => {
-    const modal = document.getElementById("my_modal_3") as HTMLDialogElement;
-    setSelectedUser(user);
-    if (modal) {
-      modal.showModal();
-    } else {
-      console.error("Modal not found!");
+  const updateMatching = async (
+    status: "matched" | "rejected",
+    receiverId: string
+  ) => {
+    // console.log("Received Requests: ", matchingData.receivedRequests);
+    // console.log("check receiverId: ", receiverId);
+
+    // const matching = matchingData.receivedRequests.find(
+    //   (request) => request.requesterUser.id === receiverId
+    // );
+    // console.log("Found Matching: ", matching);
+    try {
+      const matching = matchingData.receivedRequests.find(
+        (request) => request.requesterUser.id === receiverId // เปรียบเทียบ requesterUser.id กับ receiverId
+      );
+
+      if (!matching) {
+        console.error("Matching not found for the given receiverId");
+        return;
+      }
+
+      const receiverUser = matching.receiverUser.find(
+        (user) => user.id === clientSession?.user?.id
+      );
+
+      if (!receiverUser) {
+        console.error("Receiver user not found in matching");
+        return;
+      }
+
+      const matchingId = matching._id;
+      const response = await axios.put(`api/matching/${matchingId}`, {
+        updateStatus: status,
+        receiverId: receiverUser.id,
+      });
+      setMatchingStatus(status);
+      console.log("Matching status update: ", response.data);
+    } catch (error) {
+      console.log("Error updating matching: ", error);
     }
+  };
+
+  const handleShowModal = (user: MatchingRequest) => {
+    setSelectedUser(user);
+  };
+
+  const handleCloseModal = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const modal = document.getElementById("my_modal_3") as HTMLDialogElement;
+    if (modal) {
+      modal.close();
+    }
+    setSelectedUser(null);
+    setActiveIndex(0); // รีเซ็ต index เป็น 0
   };
 
   const handleNextSlide = () => {
@@ -90,7 +158,14 @@ const Navbar = ({ session }: { session: Session | null }) => {
       // หากยังโหลดอยู่ ไม่ต้องทำอะไร
       return;
     }
-  }, [status]);
+
+    if (selectedUser) {
+      const modal = document.getElementById("my_modal_3") as HTMLDialogElement;
+      if (modal) {
+        modal.showModal();
+      }
+    }
+  }, [status, selectedUser]);
 
   return (
     <div className="sticky top-0 z-50 px-[200px] border-[1px] w-full h-[88px] bg-white flex flex-row justify-between items-center shadow-md">
@@ -144,18 +219,18 @@ const Navbar = ({ session }: { session: Session | null }) => {
           </button>
 
           <div className="flex items-center gap-[12px]">
-            {matchingData && (
-              <div className="dropdown">
-                <button className="p-[10px] bg-gray-100 rounded-[100%]">
-                  <FaBell className="text-[20px] text-red-200" />
-                </button>
-                <div
-                  tabIndex={0}
-                  className="dropdown-content menu bg-base-100 rounded-box z-[1] w-[250px] p-2 shadow"
-                >
-                  {matchingData.length > 0 ? (
-                    <div className="carousel carousel-vertical rounded-box h-[222px]">
-                      {matchingData.map((invitation, index_invitation) => {
+            <div className="dropdown">
+              <button className="p-[10px] bg-gray-100 rounded-[100%]">
+                <FaBell className="text-[20px] text-red-200" />
+              </button>
+              <div
+                tabIndex={0}
+                className="dropdown-content menu bg-base-100 rounded-box z-[1] w-[250px] p-2 shadow"
+              >
+                {matchingData.receivedRequests.length > 0 ? (
+                  <div className="carousel carousel-vertical rounded-box h-[222px]">
+                    {matchingData.receivedRequests.map(
+                      (invitation, index_invitation) => {
                         const requesterStatus = invitation.receiverUser.find(
                           (user) => user.id === clientSession?.user?.id
                         )?.status;
@@ -206,75 +281,149 @@ const Navbar = ({ session }: { session: Session | null }) => {
                             ) : null}
                           </button>
                         );
-                      })}
-                    </div>
-                  ) : (
-                    <div>empty!</div>
-                  )}
-                </div>
+                      }
+                    )}
+                  </div>
+                ) : (
+                  <div>empty!</div>
+                )}
               </div>
-            )}
+            </div>
 
             {selectedUser && (
               <dialog id="my_modal_3" className="modal">
                 <div
                   className="modal-box"
-                  style={{ width: "1000px", maxWidth: "100%", height: "650px" }}
+                  style={{ width: "1000px", maxWidth: "100%", height: "550px" }}
                 >
                   <form method="dialog">
-                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+                    <button
+                      className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                      onClick={handleCloseModal}
+                    >
                       ✕
                     </button>
                   </form>
-                  <div className="bg-red-800 w-full h-full flex justify-between">
-                    <Swiper
-                      slidesPerView={1.75}
-                      centeredSlides={true}
-                      ref={swiperRef}
-                      className="bg-red-300 w-full h-full overflow-hidden"
-                    >
-                      <SwiperSlide>
-                        <div>
+                  <div className="p-[20px_0px_20px_20px] w-full h-full flex justify-between gap-[15px]">
+                    <div className="w-[50%] h-[80%] flex flex-col gap-[25px]">
+                      <div className="relative w-full h-full">
+                        <Swiper
+                          slidesPerView={1}
+                          ref={swiperRef}
+                          onSlideChange={(swiper) =>
+                            setActiveIndex(swiper.realIndex)
+                          }
+                          className="absolute w-full h-[100%] flex overflow-hidden"
+                        >
                           {selectedUser.image.map((image, index_image) => (
-                            <img key={index_image} src={image.url} />
+                            <SwiperSlide key={index_image}>
+                              <img
+                                src={image.url}
+                                className="w-full h-full object-cover rounded-[32px]"
+                              />
+                            </SwiperSlide>
                           ))}
+                        </Swiper>
+                        <div className="absolute z-10 bottom-[-30px] border-gray-700 w-full text-[32px] flex justify-center items-center">
+                          <div className="flex gap-[24px]">
+                            <button
+                              onClick={() =>
+                                updateMatching("rejected", selectedUser.id)
+                              }
+                              className="w-[60px] h-[60px] text-[42px] text-gray-700 bg-white rounded-[16px] flex justify-center items-center shadow-md active:text-[40px]"
+                            >
+                              <IoClose />
+                            </button>
+                            <button
+                              onClick={() =>
+                                updateMatching("matched", selectedUser.id)
+                              }
+                              className="w-[60px] h-[60px] text-[36px] text-red-500 bg-white rounded-[16px] flex justify-center items-center shadow-md active:text-[34px]"
+                            >
+                              <IoHeart />
+                            </button>
+                          </div>
                         </div>
-                      </SwiperSlide>
-                    </Swiper>
-                    <div className="text-white">
-                      <div>
-                        <div>
-                          <span>{selectedUser.name}</span>
-                          <span>24</span>
+                      </div>
+                      <div className="w-full h-full flex justify-between">
+                        <div className="px-[24px] py-[12px]">
+                          {activeIndex + 1}/{selectedUser.image.length}
                         </div>
-                        <div>
-                          <img src="" alt="" />
-                          <span>
+                        <div className="flex">
+                          <button
+                            onClick={handlePrevSlide}
+                            className="w-[38px] text-[20px] active:text-[19px]"
+                          >
+                            <FaArrowLeft />
+                          </button>
+                          <button
+                            onClick={handleNextSlide}
+                            className="w-[38px] text-[20px] active:text-[19px]"
+                          >
+                            <FaArrowRight />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-[16px] pl-[60px] w-full flex flex-col gap-[60px]">
+                      <div className="flex flex-col gap-[8px]">
+                        <div className="flex gap-[16px]">
+                          <div className="text-gray-900 text-[46px] font-[800]">
+                            {selectedUser.name}
+                          </div>
+                          <div className="text-gray-700 text-[46px] font-[800]">
+                            24
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-[10px]">
+                          <HiLocationMarker className="text-red-200 text-[20px]" />
+                          <div className="text-gray-700 text-[20px] font-[600]">
                             {selectedUser.state},{selectedUser.country}
-                          </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-full">
+                        <div className="w-full flex items-center">
+                          <div className="w-[45%] text-gray-900 text-[16px] font-[400]">
+                            Sexual identities
+                          </div>
+                          <div className="w-[55%] text-gray-700 text-[20px] font-[600]">
+                            {selectedUser.sexIdent}
+                          </div>
+                        </div>
+                        <div className="w-full flex items-center">
+                          <div className="w-[45%] text-gray-900 text-[16px] font-[400]">
+                            Sexual preferences
+                          </div>
+                          <div className="w-[55%] text-gray-700 text-[20px] font-[600]">
+                            {selectedUser.sexPref}
+                          </div>
+                        </div>
+                        <div className="w-full flex items-center">
+                          <div className="w-[45%] text-gray-900 text-[16px] font-[400]">
+                            Racial preferences
+                          </div>
+                          <div className="w-[55%] text-gray-700 text-[20px] font-[600]">
+                            {selectedUser.racialPref}
+                          </div>
+                        </div>
+                        <div className="w-full flex items-center">
+                          <div className="w-[45%] text-gray-900 text-[16px] font-[400]">
+                            Meeting interests
+                          </div>
+                          <div className="w-[55%] text-gray-700 text-[20px] font-[600]">
+                            {selectedUser.meeting}
+                          </div>
                         </div>
                       </div>
                       <div>
-                        <div>
-                          <span>Sexual identities</span>
-                          <span>{selectedUser.sexIdent}</span>
+                        <div className="text-gray-900 text-[24px] font-[700]">
+                          hobies and interest
                         </div>
-                        <div>
-                          <span>Sexual preferences</span>
-                          <span>{selectedUser.sexPref}</span>
+                        <div className="text-gray-900 text-[16px] font-[400]">
+                          {selectedUser.hobbies}
                         </div>
-                        <div>
-                          <span>Racial preferences</span>
-                          <span></span>
-                        </div>
-                        <div>
-                          <span>Meeting interests</span>
-                          <span>{selectedUser.meeting}</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div>hobies and interest</div>
-                        <div></div>
                       </div>
                     </div>
                   </div>

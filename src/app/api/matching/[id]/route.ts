@@ -22,6 +22,7 @@ export const PUT = async (
       await req.json();
 
     const matching = await MatchingStatus.findById(matchingId);
+    // console.log("Matching found: ", matching);
 
     if (!matching) {
       return NextResponse.json(
@@ -33,6 +34,8 @@ export const PUT = async (
     const receiver = matching.receiverUser.find(
       (user: any) => user.id.toString() === receiverId
     );
+
+    console.log("Receiver ID: ", receiverId);
 
     if (!receiver) {
       return NextResponse.json(
