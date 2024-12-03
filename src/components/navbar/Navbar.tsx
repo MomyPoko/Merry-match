@@ -75,7 +75,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
       setMatchingData({ sentRequests, receivedRequests });
       // เดี๋ยวเราต้องใช้ receivedRequests เพิ่มเลือกเอาว่า array ไหนมี _id ที่เราต้องใช้
 
-      console.log("Matching user data fetch: ", response.data);
+      // console.log("Matching user data fetch: ", response.data);
     } catch (error) {
       console.log("Error fetching matching: ", error);
     }

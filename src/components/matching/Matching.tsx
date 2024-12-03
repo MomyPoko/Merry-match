@@ -87,15 +87,15 @@ const MatchingPage = () => {
       const response = await axios.get("/api/matching/index");
       const data = response.data;
 
-      if (data && data[0]?.receiverUser) {
-        setMatchingData(data[0].receiverUser);
+      if (data && data?.receivedRequests) {
+        setMatchingData(data.receivedRequests);
         setNoUsersFoundMessage(null);
       } else {
         setMatchingData([]);
         setNoUsersFoundMessage("User not found");
       }
 
-      // console.log("matchingpage user data fetch: ", data);
+      console.log("matchingpage user data fetch: ", data);
     } catch (error) {
       console.log("Error fetching matching: ", error);
     }
@@ -138,7 +138,7 @@ const MatchingPage = () => {
       setUserData(response.data);
       // setHideButtons(Array(response.data.length).fill(false));
 
-      // console.log("Users data fetched: ", response.data);
+      console.log("Users data fetched: ", response.data);
     } catch (error: any) {
       if (error.response?.status === 404) {
         setNoUsersFoundMessage("User not found");
