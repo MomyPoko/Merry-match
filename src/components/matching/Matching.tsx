@@ -48,6 +48,7 @@ const MatchingPage = () => {
     null
   );
   const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [targetIndex, setTargetIndex] = useState<number | null>(null);
   const [ageRange, setAgeRange] = useState<number[]>([18, 50]);
   const [selectedAgeRange, setSelectedAgeRange] = useState<number[]>([18, 50]);
   const [pages, setPages] = useState<"matching" | "chatting" | "merrymatch">(
@@ -87,8 +88,17 @@ const MatchingPage = () => {
       const response = await axios.get("/api/matching/index");
       const data = response.data;
 
-      if (data && data?.receivedRequests) {
-        setMatchingData(data.receivedRequests);
+      if (data && data.receivedRequests) {
+        const filteredMatchingData = data.receivedRequests
+          .filter((request: any) =>
+            request.receiverUser.some(
+              (user: any) =>
+                user.id === session?.user?.id && user.status === "matched"
+            )
+          )
+          .map((request: any) => request.requesterUser);
+
+        setMatchingData(filteredMatchingData);
         setNoUsersFoundMessage(null);
       } else {
         setMatchingData([]);
@@ -246,10 +256,15 @@ const MatchingPage = () => {
     getMatchingData();
 
     if (pages === "matching") {
-      getUserData(); // รีเฟรชข้อมูลใหม่
-      setActiveIndex(0); // รีเซ็ต Index ของ Swiper
+      getUserData();
+      setActiveIndex(0);
     }
-  }, [pages]);
+
+    if (pages === "merrymatch" && targetIndex !== null) {
+      swiperRef.current?.swiper?.slideTo(targetIndex);
+      setTargetIndex(null);
+    }
+  }, [pages, targetIndex]);
 
   useEffect(() => {
     if (session) {
@@ -294,29 +309,36 @@ const MatchingPage = () => {
 
                 {matchingData && matchingData.length > 0 ? (
                   <div className="carousel gap-[12px]">
-                    {matchingData.map((matchdata, index_matchdata) => {
-                      return matchdata?.status === "matched" ? (
-                        <button key={index_matchdata} className="carousel-item">
-                          <div
-                            onClick={() => setPages("merrymatch")}
-                            className="relative w-[100px] h-[100px]"
-                          >
-                            <img
-                              src={matchdata?.image[0].url}
-                              className="w-full h-full rounded-[24px]"
-                            />
-                            <img
-                              src="/images/icon-doubleheart.png"
-                              className="absolute bottom-0 left-16"
-                            />
-                          </div>
-                        </button>
-                      ) : null;
-                    })}
+                    {matchingData.map((matchdata, index_matchdata) => (
+                      <button
+                        onClick={() => {
+                          setTargetIndex(index_matchdata); // กำหนด index ที่ต้องการ
+                          setPages("merrymatch");
+                        }}
+                        key={index_matchdata}
+                        className="carousel-item"
+                      >
+                        <div className="relative w-[100px] h-[100px]">
+                          <img
+                            src={matchdata.image[0].url}
+                            className={`w-full h-full rounded-[24px] ${
+                              pages === "merrymatch" &&
+                              activeIndex === index_matchdata
+                                ? "border-[1px] border-purple-500"
+                                : ""
+                            }`}
+                          />
+                          <img
+                            src="/images/icon-doubleheart.png"
+                            className="absolute bottom-0 right-[-2px]"
+                          />
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 ) : (
                   <div className="text-[14px] font-[400] text-gray-900">
-                    No one matched ?
+                    No matched users found.
                   </div>
                 )}
               </div>
@@ -486,8 +508,59 @@ const MatchingPage = () => {
                     </div>
                   )
                 ) : pages === "merrymatch" ? (
-                  <div className="w-full h-full bg-red-200">
-                    merrymatch page
+                  <div className="w-full h-full flex flex-col justify-start items-center">
+                    <Swiper
+                      slidesPerView={1.75}
+                      centeredSlides={true}
+                      breakpoints={{
+                        1440: {
+                          spaceBetween: 160,
+                        },
+                        1920: {
+                          spaceBetween: 200,
+                        },
+                      }}
+                      onSlideChange={(swiper) =>
+                        setActiveIndex(swiper.activeIndex)
+                      }
+                      ref={swiperRef}
+                      className="w-[100%] h-[80%] overflow-hidden"
+                    >
+                      {matchingData.map((data, index_data) => (
+                        <SwiperSlide key={index_data}>
+                          <div
+                            className={`relative pt-[10%] w-[100%] h-[90%] transition-all duration-500 ${
+                              activeIndex === index_data
+                                ? "scale-100 z-20"
+                                : "scale-90 z-10 opacity-30"
+                            }`}
+                          >
+                            <img
+                              src={data.image[0].url}
+                              alt={data.name}
+                              className="w-[100%] h-[100%] rounded-[32px]"
+                            />
+                            <div className="absolute bottom-0 bg-gradient-to-t from-[#390741] to-[070941]/0 px-[6%] w-full h-[35%] rounded-[30px] flex flex-col justify-start items-center gap-[40px]">
+                              <div className="flex flex-col justify-center items-center gap-[12px]">
+                                <img
+                                  src="/images/icon-doublebigheart.png"
+                                  className="w-[70px] h-[40px]"
+                                />
+                                <img
+                                  src="/images/text-merrymatch.jpg"
+                                  className="w-[150px] h-[40px]"
+                                />
+                              </div>
+                              <div>
+                                <button className="bg-red-100 px-[24px] py-[12px] text-red-600 text-[16px] font-[700] rounded-[99px]">
+                                  Start Conversation
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </SwiperSlide>
+                      ))}
+                    </Swiper>
                   </div>
                 ) : (
                   ""
