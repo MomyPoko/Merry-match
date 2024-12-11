@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+.scrollbar {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #4b5563 #d1d5db; /* thumb = blue-500, track = gray-200 */
+}
+
+.scrollbar::-webkit-scrollbar {
+  width: 25px;
+  height: 5px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background: #d1d5db; /* สีของ Track */
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4b5563; /* สีของตัวเลื่อน (Thumb) เป็นเทาเข้ม */
+  border-radius: 20px; /* ทำให้ขอบโค้งมน */
+  border: 5px solid transparent; /* เพิ่ม Border */
+}
+
 .custom-dropdown {
   width: 300px;
   border: 1px solid black;

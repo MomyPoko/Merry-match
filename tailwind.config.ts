@@ -13,6 +13,13 @@ const config: Config = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      scrollbar: {
+        thin: {
+          thumb: "blue",
+          track: "gray",
+          width: "8px",
+        },
+      },
     },
     colors: {
       red: {
@@ -74,6 +81,6 @@ const config: Config = {
       BGMain: "#FCFCFE",
     },
   },
-  plugins: [require("daisyui")],
+  plugins: [require("daisyui"), require("tailwind-scrollbar")],
 };
 export default config;

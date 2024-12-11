@@ -18,6 +18,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import user from "@/models/user";
+import "@/app/globals.css";
 
 interface UserData {
   _id: string;
@@ -653,7 +654,7 @@ const MatchingPage = () => {
               </div>
             </>
           ) : pages === "chatting" ? (
-            <div className="relative w-[80%] bg-red-200 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-purple-500 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-green-500 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+            <div className="relative w-[80%] bg-red-200 overflow-y-auto scrollbar">
               <nav className="px-4 h-[96px] bg-black flex items-center">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full overflow-hidden">
