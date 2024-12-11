@@ -344,7 +344,7 @@ const MatchingPage = () => {
               </div>
             </div>
 
-            <div className="w-full">
+            <div className="w-full flex justify-center">
               <div className="pt-[24px] w-[281px] flex flex-col gap-[16px]">
                 <div className="text-[24px] font-[700] text-gray-900">
                   Chat with Merry Match
@@ -540,31 +540,26 @@ const MatchingPage = () => {
                               alt={data.name}
                               className="w-[100%] h-[100%] rounded-[32px]"
                             />
-                            <div className="absolute bottom-0 bg-gradient-to-t from-[#390741] to-[070941]/0 px-[6%] w-full h-[35%] rounded-[30px] flex flex-col justify-start items-center gap-[40px]">
-                              <div className="flex flex-col justify-center items-center gap-[12px]">
+
+                            {activeIndex === index_data && (
+                              <div className="absolute bottom-0 bg-gradient-to-t from-[#390741] to-[070941]/0 px-[6%] w-full h-[35%] rounded-[30px] flex flex-col justify-start items-center gap-[40px]">
                                 <img
-                                  src="/images/icon-doublebigheart.png"
-                                  className="w-[70px] h-[40px]"
+                                  src="/images/image-merrymatch.png"
+                                  className="w-[220px]"
                                 />
-                                <img
-                                  src="/images/text-merrymatch.jpg"
-                                  className="w-[150px] h-[40px]"
-                                />
+                                <div>
+                                  <button className="bg-red-100 px-[24px] py-[12px] text-red-600 text-[16px] font-[700] rounded-[99px] active:scale-95">
+                                    Start Conversation
+                                  </button>
+                                </div>
                               </div>
-                              <div>
-                                <button className="bg-red-100 px-[24px] py-[12px] text-red-600 text-[16px] font-[700] rounded-[99px]">
-                                  Start Conversation
-                                </button>
-                              </div>
-                            </div>
+                            )}
                           </div>
                         </SwiperSlide>
                       ))}
                     </Swiper>
                   </div>
-                ) : (
-                  ""
-                )}
+                ) : null}
               </div>
 
               <div className="w-[15%] h-full bg-gray-100">
@@ -658,8 +653,181 @@ const MatchingPage = () => {
               </div>
             </>
           ) : pages === "chatting" ? (
-            <div className="w-[80%] bg-red-200">
-              <div className="text-[60px] text-white">chatting page</div>
+            <div className="relative w-[80%] bg-red-200 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-purple-500 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-green-500 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <nav className="px-4 h-[96px] bg-black flex items-center">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full overflow-hidden">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h2 className="text-white text-xl">MomyPoko</h2>
+                  </div>
+                </div>
+              </nav>
+              <div className="absolute px-4 pt-2 w-full">
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex justify-end mt-5">
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    yeah bro how are you!
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-5">
+                  <div className="w-12 h-12">
+                    <img
+                      src="/images/image-loginpage.png"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                    Hello how are you?
+                  </span>
+                </div>
+              </div>
             </div>
           ) : null}
         </>
