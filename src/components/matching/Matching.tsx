@@ -9,6 +9,7 @@ import { FaArrowRight } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 import { IoHeart } from "react-icons/io5";
 import { AiFillEye } from "react-icons/ai";
+import { RiSendPlaneFill } from "react-icons/ri";
 import axios from "axios";
 import * as React from "react";
 import Box from "@mui/material/Box";
@@ -654,7 +655,7 @@ const MatchingPage = () => {
               </div>
             </>
           ) : pages === "chatting" ? (
-            <div className="relative w-[80%] bg-red-200 overflow-y-auto scrollbar">
+            <div className="w-[80%] h-full bg-BG flex flex-col">
               <nav className="px-4 h-[96px] bg-black flex items-center">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full overflow-hidden">
@@ -668,7 +669,7 @@ const MatchingPage = () => {
                   </div>
                 </div>
               </nav>
-              <div className="absolute px-4 pt-2 w-full">
+              <div className="px-4 pt-2 pb-[10px] w-full h-[690px] overflow-y-auto scrollbar">
                 <div className="flex items-center gap-4 mt-5">
                   <div className="w-12 h-12">
                     <img
@@ -676,12 +677,12 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
                 <div className="flex justify-end mt-5">
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-600 text-white rounded-[30px]">
                     yeah bro how are you!
                   </span>
                 </div>
@@ -692,7 +693,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -703,7 +704,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -714,7 +715,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -725,7 +726,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -736,7 +737,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -747,7 +748,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -758,7 +759,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -769,7 +770,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -780,7 +781,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -791,7 +792,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -802,7 +803,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -813,7 +814,7 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
@@ -824,10 +825,23 @@ const MatchingPage = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="px-5 py-2 bg-black text-white rounded-[30px]">
+                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
                 </div>
+              </div>
+              <div className="w-full h-[80px] border-gray-800 border-t-[1px] flex justify-center items-center gap-[24px]">
+                <button className="w-[48px] h-[48px] rounded-[99px] flex justify-center items-center bg-red-500">
+                  <RiSendPlaneFill className="text-white text-[24px]" />
+                </button>
+                <input
+                  type="text"
+                  placeholder="Message here...."
+                  className="px-[14px] w-[80%] h-[48px] bg-BG text-white rounded-[30px] outline-none"
+                />
+                <button className="w-[48px] h-[48px] rounded-[99px] flex justify-center items-center bg-red-500">
+                  <RiSendPlaneFill className="text-white text-[24px]" />
+                </button>
               </div>
             </div>
           ) : null}

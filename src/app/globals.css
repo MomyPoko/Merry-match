@@ -3,23 +3,23 @@
 @tailwind utilities;
 
 .scrollbar {
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: #4b5563 #d1d5db; /* thumb = blue-500, track = gray-200 */
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #d1d5db00;
 }
 
 .scrollbar::-webkit-scrollbar {
-  width: 25px;
+  width: 5px;
   height: 5px;
 }
 
 .scrollbar::-webkit-scrollbar-track {
-  background: #d1d5db; /* สีของ Track */
+  background: #d1d5db;
 }
 
 .scrollbar::-webkit-scrollbar-thumb {
-  background-color: #4b5563; /* สีของตัวเลื่อน (Thumb) เป็นเทาเข้ม */
-  border-radius: 20px; /* ทำให้ขอบโค้งมน */
-  border: 5px solid transparent; /* เพิ่ม Border */
+  background-color: #4b5563;
+  border-radius: 20px;
+  border: 20px solid transparent;
 }
 
 .custom-dropdown {
