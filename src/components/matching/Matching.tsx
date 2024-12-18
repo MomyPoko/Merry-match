@@ -10,10 +10,12 @@ import { IoClose } from "react-icons/io5";
 import { IoHeart } from "react-icons/io5";
 import { AiFillEye } from "react-icons/ai";
 import { RiSendPlaneFill } from "react-icons/ri";
+import { BsEmojiSmileFill } from "react-icons/bs";
 import axios from "axios";
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Slider from "@mui/material/Slider";
+import Picker from "emoji-picker-react";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -38,27 +40,32 @@ interface MatchingData {
 }
 
 const MatchingPage = () => {
-  // const [matchingId, setMatchingId] = useState<string | null>(null);
-  // const [matchingStatus, setMatchingStatus] = useState<
-  //   "pending" | "matched" | "rejected"
-  // >("pending");
   const [userData, setUserData] = useState<UserData[] | null>(null);
   const [matchingData, setMatchingData] = useState<MatchingData[]>([]);
+  const [inputMsg, setInputMsg] = useState<string>("");
+  const [messages, setMessages] = useState<
+    { senderId: string; receiverId: string; content: string }[]
+  >([]);
   const [selectedSexIdent, setSelectedSexIdent] = useState<string[]>([]);
   const [sexIdent, setSexIdent] = useState<string[]>([]);
   const [noUsersFoundMessage, setNoUsersFoundMessage] = useState<string | null>(
     null
   );
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [targetIndex, setTargetIndex] = useState<number | null>(null);
+  // const [targetIndexChat, setTargetIndexChat] = useState<number | null>(null);
   const [ageRange, setAgeRange] = useState<number[]>([18, 50]);
   const [selectedAgeRange, setSelectedAgeRange] = useState<number[]>([18, 50]);
   const [pages, setPages] = useState<"matching" | "chatting" | "merrymatch">(
     "matching"
   );
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
 
   const { data: session } = useSession();
   const swiperRef = useRef<any>(null);
+
+  const currentUserId = session?.user?.id;
 
   let sex_Identities: Array<string> = ["Male", "Female", "Other"];
 
@@ -112,22 +119,6 @@ const MatchingPage = () => {
       console.log("Error fetching matching: ", error);
     }
   };
-
-  // const updateMatching = async (
-  //   status: "matched" | "rejected",
-  //   receiverId: string
-  // ) => {
-  //   try {
-  //     const response = await axios.put(`api/matching/${matchingId}`, {
-  //       updateStatus: status,
-  //       receiverId,
-  //     });
-  //     setMatchingStatus(status);
-  //     console.log("Matching status update: ", response.data);
-  //   } catch (error) {
-  //     console.log("Error updating matching: ", error);
-  //   }
-  // };
 
   const getUserData = async () => {
     try {
@@ -254,6 +245,41 @@ const MatchingPage = () => {
     setSelectedAgeRange(newRange as number[]);
   };
 
+  const handleEmojiPickerHideShow = () => {
+    setShowEmojiPicker(!showEmojiPicker);
+  };
+
+  const handleEmojiClick = (emoji: any) => {
+    const selectedEmoji = emoji?.emoji || emoji?.native || "";
+
+    if (selectedEmoji) {
+      setInputMsg((prevMsg) => prevMsg + selectedEmoji);
+    }
+  };
+
+  const handleStartConversation = (userId: string) => {
+    setSelectedUserId(userId);
+    setPages("chatting");
+  };
+
+  const handleSendChat = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (inputMsg.length > 0 && currentUserId && selectedUserId) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          senderId: currentUserId,
+          receiverId: selectedUserId,
+          content: inputMsg,
+        },
+      ]);
+      setInputMsg("");
+    }
+  };
+
+  const selectedUser = matchingData.find((user) => user.id === selectedUserId);
+
   useEffect(() => {
     getMatchingData();
 
@@ -266,6 +292,11 @@ const MatchingPage = () => {
       swiperRef.current?.swiper?.slideTo(targetIndex);
       setTargetIndex(null);
     }
+
+    // if (pages === "chatting" && targetIndexChat !== null) {
+    //   swiperRef.current?.swiper?.slideTo(targetIndexChat);
+    //   setTargetIndexChat(null);
+    // }
   }, [pages, targetIndex]);
 
   useEffect(() => {
@@ -283,7 +314,7 @@ const MatchingPage = () => {
       {userData && (
         <>
           <div className="w-[20%] h-full bg-gray-100 flex flex-col">
-            <div className="py-[30px] w-[100%] border-b-[1px] border-gray-300 flex justify-center items-center">
+            <div className="py-[30px] w-full border-b-[1px] border-gray-300 flex justify-center items-center">
               <button
                 onClick={() => setPages("matching")}
                 className={`p-[24px] w-[282px] h-[187px] border-[1px] border-gray-400 text-center bg-gray-200 rounded-[16px] flex flex-col justify-center items-center gap-[4px] ${
@@ -303,7 +334,7 @@ const MatchingPage = () => {
                 </div>
               </button>
             </div>
-            <div className="w-[100%] py-[24px] flex justify-center">
+            <div className="w-full py-[24px] flex justify-center">
               <div className="w-[281px] h-full flex flex-col justify-center gap-[16px]">
                 <div className="text-[24px] text-gray-900 font-[700]">
                   Merry Match!
@@ -314,7 +345,8 @@ const MatchingPage = () => {
                     {matchingData.map((matchdata, index_matchdata) => (
                       <button
                         onClick={() => {
-                          setTargetIndex(index_matchdata); // กำหนด index ที่ต้องการ
+                          setTargetIndex(index_matchdata);
+                          setSelectedUserId(matchdata.id);
                           setPages("merrymatch");
                         }}
                         key={index_matchdata}
@@ -325,7 +357,7 @@ const MatchingPage = () => {
                             src={matchdata.image[0].url}
                             className={`w-full h-full rounded-[24px] ${
                               pages === "merrymatch" &&
-                              activeIndex === index_matchdata
+                              selectedUserId === matchdata.id
                                 ? "border-[1px] border-purple-500"
                                 : ""
                             }`}
@@ -352,46 +384,43 @@ const MatchingPage = () => {
                   Chat with Merry Match
                 </div>
 
-                <div className="carousel carousel-vertical rounded-box h-[222px]">
-                  <div className="pb-[10px] carousel-item">
-                    <button
-                      onClick={() => setPages("chatting")}
-                      className={`px-[12px] py-[16px] w-full bg-gray-100 border-[1px]  rounded-[16px] flex gap-[12px] ${
-                        pages === "chatting" ? "border-purple-500" : ""
-                      }`}
-                    >
-                      <img
-                        src="/images/image-loginpage.png"
-                        className="w-[60px] h-[60px] rounded-[99px]"
-                      />
-                      <div className="flex flex-col items-start gap-[8px]">
-                        <div className="text-[16px] font-[400] text-gray-900">
-                          name
-                        </div>
-                        <div className="text-[14px] font-[500] text-gray-700">
-                          current chat
-                        </div>
+                {matchingData && (
+                  <div className="carousel carousel-vertical rounded-box h-[144px]">
+                    {matchingData.map((matchdata, index_matchdata) => (
+                      <div
+                        key={index_matchdata}
+                        className="pb-[10px] carousel-item"
+                      >
+                        <button
+                          onClick={() => {
+                            // setTargetIndexChat(index_matchdata);
+                            setSelectedUserId(matchdata.id);
+                            setPages("chatting");
+                          }}
+                          className={`px-[12px] py-[16px] w-full bg-gray-100 border-[1px]  rounded-[16px] flex gap-[12px] ${
+                            pages === "chatting" &&
+                            selectedUserId === matchdata.id
+                              ? "border-purple-500"
+                              : ""
+                          }`}
+                        >
+                          <img
+                            src={matchdata.image[0].url}
+                            className="w-[60px] h-[60px] rounded-[99px]"
+                          />
+                          <div className="flex flex-col items-start gap-[8px]">
+                            <div className="text-[16px] font-[400] text-gray-900">
+                              {matchdata.name}
+                            </div>
+                            <div className="text-[14px] font-[500] text-gray-700">
+                              current chat
+                            </div>
+                          </div>
+                        </button>
                       </div>
-                    </button>
+                    ))}
                   </div>
-
-                  <div className="pb-[10px] carousel-item">
-                    <div className="px-[12px] py-[16px] w-full bg-gray-100 border-[1px] border-purple-500 rounded-[16px] flex gap-[12px]">
-                      <img
-                        src="/images/image-loginpage.png"
-                        className="w-[60px] h-[60px] rounded-[99px]"
-                      />
-                      <div className="flex flex-col gap-[8px]">
-                        <div className="text-[16px] font-[400] text-gray-900">
-                          name
-                        </div>
-                        <div className="text-[14px] font-[500] text-gray-700">
-                          current chat
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -550,7 +579,12 @@ const MatchingPage = () => {
                                   className="w-[220px]"
                                 />
                                 <div>
-                                  <button className="bg-red-100 px-[24px] py-[12px] text-red-600 text-[16px] font-[700] rounded-[99px] active:scale-95">
+                                  <button
+                                    onClick={() =>
+                                      handleStartConversation(data.id)
+                                    }
+                                    className="bg-red-100 px-[24px] py-[12px] text-red-600 text-[16px] font-[700] rounded-[99px] active:scale-95"
+                                  >
                                     Start Conversation
                                   </button>
                                 </div>
@@ -603,15 +637,15 @@ const MatchingPage = () => {
                             min={18}
                             max={50}
                             sx={{
-                              color: "pink", // เปลี่ยนสี Slider เป็นสีชมพู
+                              color: "pink",
                               "& .MuiSlider-thumb": {
                                 width: "11px",
                                 height: "11px",
                                 border: "2px solid #A62D82",
-                                backgroundColor: "#DF89C6", // สีชมพูสำหรับ thumb
+                                backgroundColor: "#DF89C6",
                               },
                               "& .MuiSlider-track": {
-                                backgroundColor: "#A62D82", // สีชมพูสำหรับ track
+                                backgroundColor: "#A62D82",
                               },
                             }}
                           />
@@ -654,194 +688,100 @@ const MatchingPage = () => {
                 </div>
               </div>
             </>
-          ) : pages === "chatting" ? (
+          ) : pages === "chatting" && selectedUser ? (
             <div className="w-[80%] h-full bg-BG flex flex-col">
-              <nav className="px-4 h-[96px] bg-black flex items-center">
+              <div className="px-4 h-[96px] flex items-center">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full overflow-hidden">
                     <img
-                      src="/images/image-loginpage.png"
+                      src={selectedUser?.image[0].url}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div>
-                    <h2 className="text-white text-xl">MomyPoko</h2>
+                    <h2 className="text-white text-xl">{selectedUser?.name}</h2>
                   </div>
                 </div>
-              </nav>
-              <div className="px-4 pt-2 pb-[10px] w-full h-[690px] overflow-y-auto scrollbar">
-                <div className="flex items-center gap-4 mt-5">
+              </div>
+              <div className="flex-1 min-h-0 px-4 pt-2 pb-[5px] overflow-y-auto scrollbar">
+                {messages.map((message, index_message) => (
+                  <div
+                    key={index_message}
+                    className={`flex mt-5 ${
+                      message.senderId === currentUserId
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
+                  >
+                    {message.senderId !== currentUserId && (
+                      <div className="flex items-center gap-4 mt-5">
+                        <div className="w-12 h-12">
+                          <img
+                            src={selectedUser?.image[0].url}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        </div>
+                        <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
+                          {message.content}
+                        </span>
+                      </div>
+                    )}
+
+                    {message.senderId === currentUserId && (
+                      <div className="flex justify-end mt-5">
+                        <span className="px-5 py-2 bg-purple-600 text-white rounded-[30px]">
+                          {message.content}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {/* <div className="flex items-center gap-4 mt-5">
                   <div className="w-12 h-12">
                     <img
-                      src="/images/image-loginpage.png"
+                      src={selectedUser?.image[0].url}
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
                   <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
                     Hello how are you?
                   </span>
-                </div>
-                <div className="flex justify-end mt-5">
+                </div> */}
+                {/* <div className="flex justify-end mt-5">
                   <span className="px-5 py-2 bg-purple-600 text-white rounded-[30px]">
                     yeah bro how are you!
                   </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src="/images/image-loginpage.png"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div>
+                </div> */}
               </div>
               <div className="w-full h-[80px] border-gray-800 border-t-[1px] flex justify-center items-center gap-[24px]">
-                <button className="w-[48px] h-[48px] rounded-[99px] flex justify-center items-center bg-red-500">
-                  <RiSendPlaneFill className="text-white text-[24px]" />
-                </button>
-                <input
-                  type="text"
-                  placeholder="Message here...."
-                  className="px-[14px] w-[80%] h-[48px] bg-BG text-white rounded-[30px] outline-none"
-                />
-                <button className="w-[48px] h-[48px] rounded-[99px] flex justify-center items-center bg-red-500">
-                  <RiSendPlaneFill className="text-white text-[24px]" />
-                </button>
+                <div className="relative">
+                  <div className="w-[48px] h-[48px] rounded-[99px] flex flex-col justify-center items-center bg-red-500">
+                    <BsEmojiSmileFill
+                      onClick={handleEmojiPickerHideShow}
+                      className="rounded-full text-white text-[24px] flex justify-center items-center cursor-pointer"
+                    />
+                  </div>
+                  {showEmojiPicker && (
+                    <div className="absolute bottom-[70px] left-0 overflow-hidden bg-white rounded-lg shadow-lg z-50">
+                      <Picker
+                        onEmojiClick={handleEmojiClick}
+                        className="w-full h-full"
+                      />
+                    </div>
+                  )}
+                </div>
+                <form onSubmit={handleSendChat} className="w-[80%] flex">
+                  <input
+                    value={inputMsg}
+                    onChange={(e) => setInputMsg(e.target.value)}
+                    type="text"
+                    placeholder="Message here...."
+                    className="px-[14px] w-full h-[48px] bg-BG text-white rounded-[30px] outline-none"
+                  />
+                  <button className="w-[48px] h-[48px] rounded-[99px] flex justify-center items-center bg-red-500">
+                    <RiSendPlaneFill className="text-white text-[24px]" />
+                  </button>
+                </form>
               </div>
             </div>
           ) : null}

@@ -9,7 +9,7 @@ async function Matching() {
       <div className="flex-none h-[88px]">
         <Navbar session={session} />
       </div>
-      <div className="flex-1 h-full">
+      <div className="flex-1 flex overflow-hidden">
         <MatchingPage />
       </div>
     </div>
