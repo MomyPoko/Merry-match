@@ -2,16 +2,43 @@ import { connectMongoDB } from "@/utils/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/authOptions";
-import MatchingStatus from "@/models/matching";
 import User from "@/models/user";
 
-export async function POST(req: NextRequest) {
+interface MatchingRequest {
+  requesterId: string;
+  receiverId: string;
+  status: "pending" | "matched" | "rejected";
+}
+
+interface IUserMatch {
+  userId: string;
+  username: string;
+  status: "pending" | "matched" | "rejected";
+}
+
+interface IUser {
+  _id: string;
+  username: string;
+  matching: IUserMatch[];
+  save: () => Promise<void>;
+}
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     await connectMongoDB();
-    const { requesterUser, receiverUser } = await req.json();
 
-    const requester = await User.findById(requesterUser.id);
-    const receiver = await User.findById(receiverUser.id);
+    const { requesterId, receiverId, status }: MatchingRequest =
+      await req.json();
+
+    if (!requesterId || !receiverId) {
+      return NextResponse.json(
+        { message: "requesterId and receiverId are required" },
+        { status: 400 }
+      );
+    }
+
+    const requester: IUser | null = await User.findById(requesterId);
+    const receiver: IUser | null = await User.findById(receiverId);
 
     if (!requester || !receiver) {
       return NextResponse.json(
@@ -20,113 +47,78 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let existingMatching = await MatchingStatus.findOne({
-      "requesterUser.id": requester._id,
-    });
+    const existingMatchRequester = requester.matching.find(
+      (match) => match.userId.toString() === receiverId
+    );
 
-    if (existingMatching) {
-      const receiverExists = existingMatching.receiverUser.some(
-        (user: any) => user.id.toString() === receiver._id.toString()
-      );
+    const existingMatchReceiver = receiver.matching.find(
+      (match) => match.userId.toString() === requesterId
+    );
 
-      if (!receiverExists) {
-        existingMatching.receiverUser.push({
-          id: receiver._id,
-          username: receiver.username,
-          name: receiver.name,
-          image: receiver.image,
-          status: "pending",
-        });
-        await existingMatching.save();
+    if (status === "pending") {
+      if (existingMatchRequester || existingMatchReceiver) {
+        return NextResponse.json(
+          { message: "Matching already exists" },
+          { status: 400 }
+        );
       }
-      return NextResponse.json(
-        {
-          message: "Matching updated with new receiver",
-          matching_data: existingMatching,
-        },
-        { status: 200 }
-      );
-    } else {
-      const newMatching = new MatchingStatus({
-        requesterUser: {
-          id: requester._id,
-          username: requester.username,
-          name: requester.name,
-          dateOfBirth: requester.dateOfBirth,
-          country: requester.country,
-          state: requester.state,
-          sexPref: requester.sexPref,
-          sexIdent: requester.sexIdent,
-          racialPref: requester.racialPref,
-          meeting: requester.meeting,
-          hobbies: requester.hobbies,
-          image: requester.image,
-        },
-        receiverUser: [
-          {
-            id: receiver._id,
-            username: receiver.username,
-            name: receiver.name,
-            image: receiver.image,
-            status: "pending",
-          },
-        ],
+
+      requester.matching.push({
+        userId: receiver._id,
+        username: receiver.username,
+        status: "pending",
       });
 
-      await newMatching.save();
+      receiver.matching.push({
+        userId: requester._id,
+        username: requester.username,
+        status: "pending",
+      });
+
+      await requester.save();
+      await receiver.save();
 
       return NextResponse.json(
-        {
-          message: "Matching request created successfully",
-          matching_data: newMatching,
-        },
+        { message: "Matching created successfully" },
         { status: 201 }
       );
     }
+
+    if (status === "rejected") {
+      if (existingMatchRequester) {
+        existingMatchRequester.status = "rejected";
+      } else {
+        requester.matching.push({
+          userId: receiver._id,
+          username: receiver.username,
+          status: "rejected",
+        });
+      }
+
+      if (existingMatchReceiver) {
+        existingMatchReceiver.status = "rejected";
+      } else {
+        receiver.matching.push({
+          userId: requester._id,
+          username: requester.username,
+          status: "rejected",
+        });
+      }
+
+      await requester.save();
+      await receiver.save();
+
+      return NextResponse.json(
+        { message: "Matching create rejected successfully" },
+        { status: 201 }
+      );
+    }
+
+    return NextResponse.json({ message: "Invalid status" }, { status: 400 });
   } catch (error) {
     console.log("Error creating matching request: ", error);
     return NextResponse.json(
       { message: "Failed to create matching request" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET(req: NextRequest) {
-  try {
-    await connectMongoDB();
-
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json(
-        { message: "Not authenticated" },
-        { status: 401 }
-      );
-    }
-
-    const currentUserId = session.user.id;
-
-    const sentRequests = await MatchingStatus.find({
-      "requesterUser.id": currentUserId,
-    });
-
-    const receivedRequests = await MatchingStatus.find({
-      "receiverUser.id": currentUserId,
-    }).sort({ updatedAt: -1 });
-
-    console.log("Matching get data sentRequests: ", sentRequests);
-    console.log("Matching get data receivedRequests: ", receivedRequests);
-    return NextResponse.json(
-      { sentRequests, receivedRequests },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.log("Error fetching matching data: ", error);
-    return NextResponse.json(
-      {
-        message: "Failed to fetch matching data",
-        error,
-      },
       { status: 500 }
     );
   }

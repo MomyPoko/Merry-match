@@ -1,5 +1,4 @@
 import User from "@/models/user";
-// import user from "@/models/user";
 import mongoose from "mongoose";
 import { connectMongoDB } from "@/utils/mongodb";
 import { NextRequest, NextResponse } from "next/server";
@@ -9,100 +8,96 @@ import "dotenv/config";
 
 mongoose.set("strictPopulate", false);
 
-const getAllUsersWithPackage = async (currentUserId: string) => {
-  const users = await User.find({
-    _id: { $ne: currentUserId },
-    rejectedUsers: { $nin: [currentUserId] },
-  })
-    .populate("packages")
-    .lean();
+interface IUser {
+  _id: string;
+  username: string;
+  sexIdent?: string;
+  dateOfBirth?: Date;
+  matching: IMatching[];
+}
 
-  // console.log("check user add rejected: ", users);
-  return users.map((user) => ({
-    ...user,
-    packages: user.packages || null, // ถ้าไม่มี package ให้ตั้งค่าเป็น null
-  }));
-};
+interface IMatching {
+  userId: string;
+  username: string;
+  status: "pending" | "matched" | "rejected";
+}
 
-const getUserByKeyValue = async (
-  sexIdent?: string | null,
-  minAge?: number | null,
-  maxAge?: number | null,
-  currentUserId?: string
-) => {
-  const query: any = {
-    _id: { $ne: currentUserId },
-    rejectedUsers: { $nin: [currentUserId] },
-  };
-
-  if (sexIdent) {
-    const sexIdentArray = sexIdent.split(",");
-    query.sexIdent = { $in: sexIdentArray };
-  }
-
-  if (minAge != null && maxAge != null) {
-    const today = new Date();
-    const minDate = new Date(
-      today.getFullYear() - maxAge - 1,
-      today.getMonth(),
-      today.getDate() + 1
-    );
-    const maxDate = new Date(
-      today.getFullYear() - minAge,
-      today.getMonth(),
-      today.getDate()
-    );
-
-    query.dateOfBirth = { $gte: minDate, $lte: maxDate };
-  }
-
-  const user = await User.find(query).populate("packages").lean();
-
-  return user || null; // ถ้าไม่พบผู้ใช้ให้คืนค่า null
-};
-
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     await connectMongoDB();
 
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session || !session.user?.id) {
+      console.error("Authentication failed: No valid session");
       return NextResponse.json(
         { message: "Not authenticated" },
         { status: 401 }
       );
     }
 
-    const currentUserId = session.user.id;
+    const currentUserId: string = session.user.id;
 
     const { searchParams } = new URL(req.url);
-    const sexIdent = searchParams.get("sexIdent");
-    const minAge = searchParams.get("minAge")
+
+    const sexIdent: string | null = searchParams.get("sexIdent");
+
+    const minAge: number | null = searchParams.get("minAge")
       ? parseInt(searchParams.get("minAge") || "0", 10)
       : null;
-    const maxAge = searchParams.get("maxAge")
+
+    const maxAge: number | null = searchParams.get("maxAge")
       ? parseInt(searchParams.get("maxAge") || "0", 10)
       : null;
 
-    // ถ้ามี params_key ให้ค้นหาผู้ใช้โดยใช้ sexIdent หรือ dateofbirth
-    if (sexIdent || (minAge !== null && maxAge !== null)) {
-      const user = await getUserByKeyValue(
-        sexIdent,
-        minAge,
-        maxAge,
-        currentUserId
+    const fetchMatches: boolean = searchParams.get("fetchMatches") === "true";
+
+    const currentUser: IUser | null = await User.findById(
+      currentUserId
+    ).populate({
+      path: "matching.userId",
+      model: "User", // เชื่อมกับ model 'User'
+    });
+
+    if (!currentUser) {
+      return NextResponse.json(
+        { message: "Current user not found" },
+        { status: 404 }
       );
-      if (user && user.length > 0) {
-        return NextResponse.json(user, { status: 200 });
-      } else {
-        // ส่ง array ว่างถ้าไม่พบผู้ใช้
-        return NextResponse.json([], { status: 200 });
-      }
-    } else {
-      // ถ้าไม่มี params_key ให้คืนค่าผู้ใช้ทั้งหมดพร้อม package
-      const usersWithPackage = await getAllUsersWithPackage(currentUserId);
-      return NextResponse.json(usersWithPackage, { status: 200 });
     }
+
+    const query: any = {
+      _id: { $ne: currentUserId },
+    };
+
+    if (sexIdent) query.sexIdent = { $in: sexIdent.split(",") };
+
+    if (minAge !== null && maxAge !== null) {
+      const today = new Date();
+      const minDate = new Date(today.getFullYear() - maxAge, today.getMonth());
+      const maxDate = new Date(today.getFullYear() - minAge, today.getMonth());
+      query.dateOfBirth = { $gte: minDate, $lte: maxDate };
+    }
+
+    if (fetchMatches) {
+      // Show matched users only
+      const matchedUsers: string[] = currentUser.matching
+        .filter((match: any) => match.status === "matched")
+        .map((match: any) => match.userId);
+      return NextResponse.json(matchedUsers, { status: 200 });
+    } else {
+      // Exclude users with pending/rejected/matched status
+      const excludeIds: string[] = currentUser.matching
+        .filter(
+          (match: any) =>
+            match.status !== "matched" || match.status !== "rejected"
+        )
+        .map((match: any) => match.userId);
+
+      query._id = { $nin: excludeIds };
+    }
+
+    const users = await User.find(query).populate("packages").lean();
+    return NextResponse.json(users, { status: 200 });
   } catch (error) {
     console.log("Error fetching users: ", error);
     return NextResponse.json(
@@ -112,43 +107,43 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function PUT(req: NextRequest) {
-  try {
-    console.log("PUT request received");
-    await connectMongoDB();
+// export async function PUT(req: NextRequest) {
+//   try {
+//     console.log("PUT request received");
+//     await connectMongoDB();
 
-    const session = await getServerSession(authOptions);
-    // console.log("check session data: ", session);
-    if (!session) {
-      return NextResponse.json(
-        { message: "Not authenticated" },
-        { status: 401 }
-      );
-    }
+//     const session = await getServerSession(authOptions);
+//     // console.log("check session data: ", session);
+//     if (!session) {
+//       return NextResponse.json(
+//         { message: "Not authenticated" },
+//         { status: 401 }
+//       );
+//     }
 
-    const { rejectedUserId } = await req.json();
-    const currentUserId = session.user.id;
+//     const { rejectedUserId } = await req.json();
+//     const currentUserId = session.user.id;
 
-    console.log("currentUserId: ", currentUserId);
-    console.log("rejectedUserId: ", rejectedUserId);
+//     console.log("currentUserId: ", currentUserId);
+//     console.log("rejectedUserId: ", rejectedUserId);
 
-    const currentUser = await User.findById(currentUserId);
-    if (!currentUser.rejectedUsers.includes(rejectedUserId)) {
-      console.log("Before rejecting: ", currentUser.rejectedUsers);
-      currentUser.rejectedUsers.push(rejectedUserId); // เพิ่ม ID ผู้ใช้ที่ถูกปฏิเสธ
-      await currentUser.save();
-      console.log("After rejecting: ", currentUser.rejectedUsers);
-    }
+//     const currentUser = await User.findById(currentUserId);
+//     if (!currentUser.rejectedUsers.includes(rejectedUserId)) {
+//       console.log("Before rejecting: ", currentUser.rejectedUsers);
+//       currentUser.rejectedUsers.push(rejectedUserId); // เพิ่ม ID ผู้ใช้ที่ถูกปฏิเสธ
+//       await currentUser.save();
+//       console.log("After rejecting: ", currentUser.rejectedUsers);
+//     }
 
-    return NextResponse.json(
-      { message: "User rejected successfully" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.log("Error rejecting user: ", error);
-    return NextResponse.json(
-      { message: "Failed to reject user" },
-      { status: 500 }
-    );
-  }
-}
+//     return NextResponse.json(
+//       { message: "User rejected successfully" },
+//       { status: 200 }
+//     );
+//   } catch (error) {
+//     console.log("Error rejecting user: ", error);
+//     return NextResponse.json(
+//       { message: "Failed to reject user" },
+//       { status: 500 }
+//     );
+//   }
+// }

@@ -69,55 +69,41 @@ const Navbar = ({ session }: { session: Session | null }) => {
 
   const getMatchingData = async () => {
     try {
-      const response = await axios.get("/api/matching/index");
-      const { sentRequests, receivedRequests } = response.data;
+      const response = await axios.get(`/api/users/index`, {
+        params: {
+          fetchMatches: true, // ใช้ fetchMatches เพื่อดึงข้อมูล matching โดยตรง
+        },
+      });
 
-      setMatchingData({ sentRequests, receivedRequests });
-      // เดี๋ยวเราต้องใช้ receivedRequests เพิ่มเลือกเอาว่า array ไหนมี _id ที่เราต้องใช้
+      const matching = response.data;
 
-      // console.log("Matching user data fetch: ", response.data);
+      // กรองข้อมูลตามสถานะ "pending" และ "matched"
+      const sentRequests = matching.filter(
+        (match: any) => match.status === "pending"
+      );
+      const receivedRequests = matching.filter(
+        (match: any) => match.status === "matched"
+      );
+
+      setMatchingData({
+        sentRequests,
+        receivedRequests,
+      });
+
+      console.log("Matching data fetch Navbar: ", matching);
     } catch (error) {
       console.log("Error fetching matching: ", error);
     }
   };
 
-  const updateMatching = async (
-    status: "matched" | "rejected",
-    receiverId: string
-  ) => {
-    // console.log("Received Requests: ", matchingData.receivedRequests);
-    // console.log("check receiverId: ", receiverId);
-
-    // const matching = matchingData.receivedRequests.find(
-    //   (request) => request.requesterUser.id === receiverId
-    // );
-    // console.log("Found Matching: ", matching);
+  const updateMatching = async (userId: string, status: string) => {
     try {
-      const matching = matchingData.receivedRequests.find(
-        (request) => request.requesterUser.id === receiverId // เปรียบเทียบ requesterUser.id กับ receiverId
-      );
-
-      if (!matching) {
-        console.error("Matching not found for the given receiverId");
-        return;
-      }
-
-      const receiverUser = matching.receiverUser.find(
-        (user) => user.id === clientSession?.user?.id
-      );
-
-      if (!receiverUser) {
-        console.error("Receiver user not found in matching");
-        return;
-      }
-
-      const matchingId = matching._id;
-      const response = await axios.put(`api/matching/${matchingId}`, {
-        updateStatus: status,
-        receiverId: receiverUser.id,
+      const response = await axios.put(`/api/matching/${userId}`, {
+        userId: session?.user?.id,
+        status,
       });
-      setMatchingStatus(status);
-      console.log("Matching status update: ", response.data);
+      console.log("Matching status updated: ", response.data);
+      getMatchingData();
     } catch (error) {
       console.log("Error updating matching: ", error);
     }
@@ -152,11 +138,6 @@ const Navbar = ({ session }: { session: Session | null }) => {
   useEffect(() => {
     if (status === "authenticated") {
       getMatchingData(); // เรียก API เฉพาะเมื่อผู้ใช้ล็อกอินแล้ว
-    }
-
-    if (status === "loading") {
-      // หากยังโหลดอยู่ ไม่ต้องทำอะไร
-      return;
     }
 
     if (selectedUser) {
@@ -227,7 +208,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
                 tabIndex={0}
                 className="dropdown-content menu bg-base-100 rounded-box z-[1] w-[275px] p-2 shadow"
               >
-                {matchingData.receivedRequests.length > 0 ? (
+                {/* {matchingData.receivedRequests.length > 0 ? (
                   <div className="carousel carousel-vertical rounded-box h-[222px]">
                     {matchingData.receivedRequests.map(
                       (invitation, index_invitation) => {
@@ -287,7 +268,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
                   </div>
                 ) : (
                   <div>empty!</div>
-                )}
+                )} */}
               </div>
             </div>
 

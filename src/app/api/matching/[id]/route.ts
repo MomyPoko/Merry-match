@@ -1,10 +1,10 @@
 import { connectMongoDB } from "@/utils/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import MatchingStatus from "@/models/matching";
+import User from "@/models/user";
 
 interface UpdateMatchingRequest {
-  updateStatus: "matched" | "rejected";
-  receiverId: string;
+  requesterId: string;
+  status: "pending" | "matched" | "rejected";
 }
 
 export const PUT = async (
@@ -14,43 +14,48 @@ export const PUT = async (
   try {
     await connectMongoDB();
 
-    // ประกาศตัวแปล matchingId เพื่อเก็บข้อมูลหลังจากมีการกด match จาก id ใน collection matching
-    const matchingId = params.id;
+    const { requesterId, status }: UpdateMatchingRequest = await req.json();
 
-    // ประกาศตัวแปล status
-    const { updateStatus, receiverId }: UpdateMatchingRequest =
-      await req.json();
+    const requester = await User.findById(requesterId);
+    const receiver = await User.findById(params.id);
 
-    const matching = await MatchingStatus.findById(matchingId);
-    // console.log("Matching found: ", matching);
-
-    if (!matching) {
+    if (!requester || !receiver) {
       return NextResponse.json(
-        { message: "Matching status not found" },
+        { message: "Requester or Receiver not found" },
         { status: 404 }
       );
     }
 
-    const receiver = matching.receiverUser.find(
-      (user: any) => user.id.toString() === receiverId
+    const requesterMatchIndex = requester.matching.findIndex(
+      (match: any) => match.userId.toString() === params.id
     );
 
-    console.log("Receiver ID: ", receiverId);
-
-    if (!receiver) {
+    if (requesterMatchIndex === -1) {
       return NextResponse.json(
-        {
-          message: "Receiver user not found in matching status",
-        },
+        { message: "Match not found for requester" },
         { status: 404 }
       );
     }
 
-    receiver.status = updateStatus;
-    await matching.save();
+    requester.matching[requesterMatchIndex].status = status;
+    await requester.save();
+
+    const receiverMatchIndex = receiver.matching.findIndex(
+      (match: any) => match.userId.toString() === requesterId
+    );
+
+    if (receiverMatchIndex === -1) {
+      return NextResponse.json(
+        { message: "Match not found for receiver" },
+        { status: 404 }
+      );
+    }
+
+    receiver.matching[receiverMatchIndex].status = status;
+    await receiver.save();
 
     return NextResponse.json(
-      { message: "Matching status updated successfully", matching },
+      { message: "Matching status updated successfully" },
       { status: 200 }
     );
   } catch (error) {

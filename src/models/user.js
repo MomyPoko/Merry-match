@@ -58,11 +58,16 @@ const userSchema = new Schema(
         publicId: { type: String },
       },
     ],
-    rejectedUsers: [
+    matching: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        default: [],
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        username: { type: String, required: true },
+        status: {
+          type: String,
+          enum: ["pending", "matched", "rejected"],
+        },
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
       },
     ],
     role: {

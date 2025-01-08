@@ -1,6 +1,5 @@
 "use client";
 
-import { Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
@@ -32,6 +31,7 @@ interface UserData {
 }
 
 interface MatchingData {
+  _id: string;
   id: string;
   username: string;
   name: string;
@@ -51,10 +51,16 @@ const MatchingPage = () => {
   const [noUsersFoundMessage, setNoUsersFoundMessage] = useState<string | null>(
     null
   );
+
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [targetIndex, setTargetIndex] = useState<number | null>(null);
-  // const [targetIndexChat, setTargetIndexChat] = useState<number | null>(null);
+  const [selectedChatUser, setSelectedChatUser] = useState<MatchingData | null>(
+    null
+  );
+
+  const [activeDiscoverIndex, setActiveDiscoverIndex] = useState<number>(0);
+  const [activeMerryIndex, setActiveMerryIndex] = useState<number>(0);
+  const [activeChatIndex, setActiveChatIndex] = useState<number>(0);
+
   const [ageRange, setAgeRange] = useState<number[]>([18, 50]);
   const [selectedAgeRange, setSelectedAgeRange] = useState<number[]>([18, 50]);
   const [pages, setPages] = useState<"matching" | "chatting" | "merrymatch">(
@@ -69,52 +75,41 @@ const MatchingPage = () => {
 
   let sex_Identities: Array<string> = ["Male", "Female", "Other"];
 
-  const createMatching = async (userId: string) => {
+  const createMatching = async (
+    userId: string,
+    status: "pending" | "rejected"
+  ) => {
     try {
-      const requesterUser = { id: session?.user?.id }; // ใช้ session เพื่อดึง id ของผู้ใช้งาน
-      const receiverUser = { id: userId }; // ใช้ id ของผู้ใช้งานที่เลือกใน Swiper
-
-      await axios.post("/api/matching/index", {
-        requesterUser,
-        receiverUser,
+      const response = await axios.post("/api/matching/index", {
+        requesterId: currentUserId,
+        receiverId: userId,
+        status,
       });
-
-      await axios.put("/api/users/index", { rejectedUserId: userId });
 
       setUserData(
         (prevUserData) =>
           prevUserData?.filter((user) => user._id !== userId) || null
       );
 
-      // console.log("Matching created: ", userId);
+      getMatchingData();
+      getUserData();
+
+      console.log("Matching created: ", response.data);
     } catch (error) {
       console.log("Error creating matching: ", error);
     }
   };
 
+  // func only show all data if user have status
   const getMatchingData = async () => {
     try {
-      const response = await axios.get("/api/matching/index");
-      const data = response.data;
+      const response = await axios.get("/api/users/index", {
+        params: { fetchMatches: true },
+      });
+      setMatchingData(response.data);
+      setNoUsersFoundMessage(null);
 
-      if (data && data.receivedRequests) {
-        const filteredMatchingData = data.receivedRequests
-          .filter((request: any) =>
-            request.receiverUser.some(
-              (user: any) =>
-                user.id === session?.user?.id && user.status === "matched"
-            )
-          )
-          .map((request: any) => request.requesterUser);
-
-        setMatchingData(filteredMatchingData);
-        setNoUsersFoundMessage(null);
-      } else {
-        setMatchingData([]);
-        setNoUsersFoundMessage("User not found");
-      }
-
-      console.log("matchingpage user data fetch: ", data);
+      console.log("Matching data fetch Matchingpage: ", response.data);
     } catch (error) {
       console.log("Error fetching matching: ", error);
     }
@@ -130,18 +125,19 @@ const MatchingPage = () => {
         },
       });
 
-      if (response.data.length === 0) {
-        setNoUsersFoundMessage("User not found");
+      const filteredUsers = response.data.filter(
+        (user: UserData) => user._id !== currentUserId
+      );
+
+      if (filteredUsers.length === 0) {
+        setNoUsersFoundMessage("No users match your criteria.");
         setUserData(null);
       } else {
-        setUserData(response.data);
-        setNoUsersFoundMessage(null); // ลบข้อความเมื่อพบผู้ใช้
+        setUserData(filteredUsers);
+        setNoUsersFoundMessage(null);
       }
 
-      setUserData(response.data);
-      // setHideButtons(Array(response.data.length).fill(false));
-
-      console.log("Users data fetched: ", response.data);
+      console.log("Filtered Users Data: ", filteredUsers);
     } catch (error: any) {
       if (error.response?.status === 404) {
         setNoUsersFoundMessage("User not found");
@@ -166,35 +162,6 @@ const MatchingPage = () => {
     }
 
     return age;
-  };
-
-  const handleRemoveUser = async (rejectedUserId: string) => {
-    try {
-      if (!rejectedUserId) {
-        console.log("Rejected user ID is missing");
-        return;
-      }
-
-      await axios.put("/api/users/index", { rejectedUserId });
-
-      setUserData((prevUserData) => {
-        if (!prevUserData) return null;
-
-        const updatedUserData = prevUserData.filter(
-          (user) => user._id !== rejectedUserId
-        );
-
-        if (activeIndex >= updatedUserData.length) {
-          setActiveIndex(updatedUserData.length - 1);
-        }
-
-        return updatedUserData;
-      });
-
-      // handleNextSlide();
-    } catch (error) {
-      console.log("Error rejecting user: ", error);
-    }
   };
 
   const handleNextSlide = () => {
@@ -257,49 +224,44 @@ const MatchingPage = () => {
     }
   };
 
-  const handleStartConversation = (userId: string) => {
-    setSelectedUserId(userId);
+  const handleStartConversation = (user: MatchingData, index: number) => {
+    setSelectedUserId(user._id);
+    setSelectedChatUser(user);
+    setActiveMerryIndex(index);
+    setActiveChatIndex(index);
+    setInputMsg("");
     setPages("chatting");
+
+    if (swiperRef.current && swiperRef.current.swiper) {
+      swiperRef.current.swiper.slideTo(index);
+    }
   };
 
   const handleSendChat = (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (inputMsg.length > 0 && currentUserId && selectedUserId) {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          senderId: currentUserId,
-          receiverId: selectedUserId,
-          content: inputMsg,
-        },
-      ]);
-      setInputMsg("");
+    if (!selectedUserId) {
+      alert("Please select a user to chat with.");
+      return;
     }
-  };
 
-  const selectedUser = matchingData.find((user) => user.id === selectedUserId);
+    if (inputMsg.trim().length > 0 && currentUserId && selectedUserId) {
+      const newMessage = {
+        senderId: currentUserId,
+        receiverId: selectedUserId,
+        content: inputMsg,
+      };
+
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      console.log("Updated Messages:", messages); // ตรวจสอบว่าข้อความถูกเพิ่มหรือไม่
+    }
+    setInputMsg(""); // เคลียร์ข้อความที่พิมพ์
+  };
 
   useEffect(() => {
     getMatchingData();
+    setInputMsg("");
 
-    if (pages === "matching") {
-      getUserData();
-      setActiveIndex(0);
-    }
-
-    if (pages === "merrymatch" && targetIndex !== null) {
-      swiperRef.current?.swiper?.slideTo(targetIndex);
-      setTargetIndex(null);
-    }
-
-    // if (pages === "chatting" && targetIndexChat !== null) {
-    //   swiperRef.current?.swiper?.slideTo(targetIndexChat);
-    //   setTargetIndexChat(null);
-    // }
-  }, [pages, targetIndex]);
-
-  useEffect(() => {
     if (session) {
       getUserData();
     }
@@ -307,7 +269,29 @@ const MatchingPage = () => {
     if (sexIdent.length > 0) {
       getUserData();
     }
-  }, [sexIdent, ageRange, session]);
+
+    if (pages === "matching") {
+      getUserData();
+      setActiveDiscoverIndex(0);
+      setActiveMerryIndex(0);
+      setActiveChatIndex(0);
+      swiperRef.current?.swiper?.slideTo(activeDiscoverIndex);
+    }
+
+    if (pages === "merrymatch" && activeDiscoverIndex !== null) {
+      setActiveDiscoverIndex(0);
+      setActiveChatIndex(0);
+      swiperRef.current?.swiper?.slideTo(activeMerryIndex);
+    }
+  }, [
+    pages,
+    activeMerryIndex,
+    activeChatIndex,
+    selectedChatUser,
+    sexIdent,
+    ageRange,
+    session,
+  ]);
 
   return (
     <div className="w-full h-full flex overflow-hidden">
@@ -345,8 +329,7 @@ const MatchingPage = () => {
                     {matchingData.map((matchdata, index_matchdata) => (
                       <button
                         onClick={() => {
-                          setTargetIndex(index_matchdata);
-                          setSelectedUserId(matchdata.id);
+                          setActiveMerryIndex(index_matchdata);
                           setPages("merrymatch");
                         }}
                         key={index_matchdata}
@@ -357,7 +340,7 @@ const MatchingPage = () => {
                             src={matchdata.image[0].url}
                             className={`w-full h-full rounded-[24px] ${
                               pages === "merrymatch" &&
-                              selectedUserId === matchdata.id
+                              activeMerryIndex === index_matchdata
                                 ? "border-[1px] border-purple-500"
                                 : ""
                             }`}
@@ -393,13 +376,14 @@ const MatchingPage = () => {
                       >
                         <button
                           onClick={() => {
-                            // setTargetIndexChat(index_matchdata);
-                            setSelectedUserId(matchdata.id);
+                            setSelectedUserId(matchdata._id);
+                            setSelectedChatUser(matchdata);
+                            setActiveChatIndex(index_matchdata);
                             setPages("chatting");
                           }}
                           className={`px-[12px] py-[16px] w-full bg-gray-100 border-[1px]  rounded-[16px] flex gap-[12px] ${
                             pages === "chatting" &&
-                            selectedUserId === matchdata.id
+                            activeChatIndex === index_matchdata
                               ? "border-purple-500"
                               : ""
                           }`}
@@ -444,7 +428,7 @@ const MatchingPage = () => {
                           },
                         }}
                         onSlideChange={(swiper) =>
-                          setActiveIndex(swiper.activeIndex)
+                          setActiveDiscoverIndex(swiper.activeIndex)
                         }
                         ref={swiperRef}
                         className="w-[100%] h-[80%] overflow-hidden"
@@ -453,7 +437,7 @@ const MatchingPage = () => {
                           <SwiperSlide key={index_data}>
                             <div
                               className={`relative pt-[10%] w-[100%] h-[90%] transition-all duration-500 ${
-                                activeIndex === index_data
+                                activeDiscoverIndex === index_data
                                   ? "scale-100 z-20"
                                   : "scale-90 z-10 opacity-30"
                               }`}
@@ -464,7 +448,7 @@ const MatchingPage = () => {
                                 className="w-[100%] h-[100%] rounded-[32px]"
                               />
 
-                              {activeIndex === index_data && (
+                              {activeDiscoverIndex === index_data && (
                                 <>
                                   <div className="absolute bottom-0 bg-gradient-to-t from-[#390741] to-[070941]/0 px-[6%] w-full h-[30%] text-white rounded-[30px] flex justify-between items-center">
                                     <div className="flex items-center gap-[16px]">
@@ -502,14 +486,16 @@ const MatchingPage = () => {
                                     <div className="flex gap-[24px]">
                                       <button
                                         onClick={() =>
-                                          handleRemoveUser(data._id)
+                                          createMatching(data._id, "rejected")
                                         }
                                         className="w-[80px] h-[80px] text-[64px] text-gray-700 bg-white rounded-[24px] flex justify-center items-center active:text-[63px]"
                                       >
                                         <IoClose />
                                       </button>
                                       <button
-                                        onClick={() => createMatching(data._id)}
+                                        onClick={() =>
+                                          createMatching(data._id, "pending")
+                                        }
                                         className="w-[80px] h-[80px] text-[48px] text-red-500 bg-white rounded-[24px] flex justify-center items-center active:text-[47px]"
                                       >
                                         <IoHeart />
@@ -527,7 +513,7 @@ const MatchingPage = () => {
                           Merry limit today
                         </span>
                         <span className="text-red-400 text-[16px] font-[400]">
-                          {activeIndex + 1}/20
+                          {activeDiscoverIndex + 1}/20
                         </span>
                       </div>
                     </div>
@@ -552,7 +538,7 @@ const MatchingPage = () => {
                         },
                       }}
                       onSlideChange={(swiper) =>
-                        setActiveIndex(swiper.activeIndex)
+                        setActiveMerryIndex(swiper.activeIndex)
                       }
                       ref={swiperRef}
                       className="w-[100%] h-[80%] overflow-hidden"
@@ -561,7 +547,7 @@ const MatchingPage = () => {
                         <SwiperSlide key={index_data}>
                           <div
                             className={`relative pt-[10%] w-[100%] h-[90%] transition-all duration-500 ${
-                              activeIndex === index_data
+                              activeMerryIndex === index_data
                                 ? "scale-100 z-20"
                                 : "scale-90 z-10 opacity-30"
                             }`}
@@ -572,7 +558,7 @@ const MatchingPage = () => {
                               className="w-[100%] h-[100%] rounded-[32px]"
                             />
 
-                            {activeIndex === index_data && (
+                            {activeMerryIndex === index_data && (
                               <div className="absolute bottom-0 bg-gradient-to-t from-[#390741] to-[070941]/0 px-[6%] w-full h-[35%] rounded-[30px] flex flex-col justify-start items-center gap-[40px]">
                                 <img
                                   src="/images/image-merrymatch.png"
@@ -581,7 +567,7 @@ const MatchingPage = () => {
                                 <div>
                                   <button
                                     onClick={() =>
-                                      handleStartConversation(data.id)
+                                      handleStartConversation(data, index_data)
                                     }
                                     className="bg-red-100 px-[24px] py-[12px] text-red-600 text-[16px] font-[700] rounded-[99px] active:scale-95"
                                   >
@@ -688,18 +674,20 @@ const MatchingPage = () => {
                 </div>
               </div>
             </>
-          ) : pages === "chatting" && selectedUser ? (
+          ) : pages === "chatting" && selectedChatUser ? (
             <div className="w-[80%] h-full bg-BG flex flex-col">
               <div className="px-4 h-[96px] flex items-center">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full overflow-hidden">
                     <img
-                      src={selectedUser?.image[0].url}
+                      src={selectedChatUser?.image[0]?.url}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div>
-                    <h2 className="text-white text-xl">{selectedUser?.name}</h2>
+                    <h2 className="text-white text-xl">
+                      {selectedChatUser?.name}
+                    </h2>
                   </div>
                 </div>
               </div>
@@ -717,7 +705,7 @@ const MatchingPage = () => {
                       <div className="flex items-center gap-4 mt-5">
                         <div className="w-12 h-12">
                           <img
-                            src={selectedUser?.image[0].url}
+                            src={selectedChatUser?.image[0].url}
                             className="w-full h-full rounded-full object-cover"
                           />
                         </div>
@@ -736,22 +724,6 @@ const MatchingPage = () => {
                     )}
                   </div>
                 ))}
-                {/* <div className="flex items-center gap-4 mt-5">
-                  <div className="w-12 h-12">
-                    <img
-                      src={selectedUser?.image[0].url}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                    Hello how are you?
-                  </span>
-                </div> */}
-                {/* <div className="flex justify-end mt-5">
-                  <span className="px-5 py-2 bg-purple-600 text-white rounded-[30px]">
-                    yeah bro how are you!
-                  </span>
-                </div> */}
               </div>
               <div className="w-full h-[80px] border-gray-800 border-t-[1px] flex justify-center items-center gap-[24px]">
                 <div className="relative">
