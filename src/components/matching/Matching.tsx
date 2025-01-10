@@ -42,10 +42,8 @@ interface MatchingData {
 const MatchingPage = () => {
   const [userData, setUserData] = useState<UserData[] | null>(null);
   const [matchingData, setMatchingData] = useState<MatchingData[]>([]);
-  const [inputMsg, setInputMsg] = useState<string>("");
-  const [messages, setMessages] = useState<
-    { senderId: string; receiverId: string; content: string }[]
-  >([]);
+  const [inputMsg, setInputMsg] = useState<{ [key: string]: string }>({});
+  const [messages, setMessages] = useState<{ [key: string]: any[] }>({});
   const [selectedSexIdent, setSelectedSexIdent] = useState<string[]>([]);
   const [sexIdent, setSexIdent] = useState<string[]>([]);
   const [noUsersFoundMessage, setNoUsersFoundMessage] = useState<string | null>(
@@ -69,7 +67,10 @@ const MatchingPage = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
 
   const { data: session } = useSession();
+
   const swiperRef = useRef<any>(null);
+
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const currentUserId = session?.user?.id;
 
@@ -224,43 +225,86 @@ const MatchingPage = () => {
     }
   };
 
-  const handleStartConversation = (user: MatchingData, index: number) => {
+  const handleStartConversation = async (user: MatchingData, index: number) => {
     setSelectedUserId(user._id);
     setSelectedChatUser(user);
     setActiveMerryIndex(index);
     setActiveChatIndex(index);
-    setInputMsg("");
     setPages("chatting");
 
     if (swiperRef.current && swiperRef.current.swiper) {
       swiperRef.current.swiper.slideTo(index);
     }
+
+    try {
+      const response = await axios.get("/api/messages/index", {
+        params: { from: currentUserId, to: user._id },
+      });
+
+      setMessages((prev) => ({
+        ...prev,
+        [user._id]: response.data,
+      }));
+
+      setInputMsg((prev) => ({
+        ...prev,
+        [user._id]: "",
+      }));
+
+      console.log("Get data message: ", response.data);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
   };
 
-  const handleSendChat = (event: React.FormEvent) => {
+  const handleSendChat = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!selectedUserId) {
-      alert("Please select a user to chat with.");
+    if (!selectedUserId || !currentUserId) {
+      console.error("Error: selectedUserId or currentUserId is undefined");
       return;
     }
 
-    if (inputMsg.trim().length > 0 && currentUserId && selectedUserId) {
-      const newMessage = {
-        senderId: currentUserId,
-        receiverId: selectedUserId,
-        content: inputMsg,
-      };
-
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-      console.log("Updated Messages:", messages); // ตรวจสอบว่าข้อความถูกเพิ่มหรือไม่
+    if (!inputMsg[selectedUserId] || inputMsg[selectedUserId].trim() === "") {
+      console.error("Error: Message content is empty");
+      return;
     }
-    setInputMsg(""); // เคลียร์ข้อความที่พิมพ์
+
+    try {
+      const messageText = inputMsg[selectedUserId]?.trim() || "";
+
+      if (!messageText) return;
+
+      const response = await axios.post("/api/messages/index", {
+        from: currentUserId,
+        to: selectedUserId,
+        message: messageText,
+      });
+
+      setMessages((prev) => ({
+        ...prev,
+        [selectedUserId]: [
+          ...(prev[selectedUserId] || []),
+          {
+            fromSelf: true,
+            message: { text: messageText },
+          },
+        ],
+      }));
+
+      setInputMsg((prev) => ({
+        ...prev,
+        [selectedUserId]: "",
+      }));
+
+      console.log("Message sent: ", response.data);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
 
   useEffect(() => {
     getMatchingData();
-    setInputMsg("");
 
     if (session) {
       getUserData();
@@ -283,6 +327,10 @@ const MatchingPage = () => {
       setActiveChatIndex(0);
       swiperRef.current?.swiper?.slideTo(activeMerryIndex);
     }
+
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [
     pages,
     activeMerryIndex,
@@ -291,6 +339,8 @@ const MatchingPage = () => {
     sexIdent,
     ageRange,
     session,
+    messages,
+    selectedUserId,
   ]);
 
   return (
@@ -376,10 +426,7 @@ const MatchingPage = () => {
                       >
                         <button
                           onClick={() => {
-                            setSelectedUserId(matchdata._id);
-                            setSelectedChatUser(matchdata);
-                            setActiveChatIndex(index_matchdata);
-                            setPages("chatting");
+                            handleStartConversation(matchdata, index_matchdata);
                           }}
                           className={`px-[12px] py-[16px] w-full bg-gray-100 border-[1px]  rounded-[16px] flex gap-[12px] ${
                             pages === "chatting" &&
@@ -674,7 +721,7 @@ const MatchingPage = () => {
                 </div>
               </div>
             </>
-          ) : pages === "chatting" && selectedChatUser ? (
+          ) : pages === "chatting" && selectedChatUser && selectedUserId ? (
             <div className="w-[80%] h-full bg-BG flex flex-col">
               <div className="px-4 h-[96px] flex items-center">
                 <div className="flex items-center gap-4">
@@ -691,39 +738,45 @@ const MatchingPage = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex-1 min-h-0 px-4 pt-2 pb-[5px] overflow-y-auto scrollbar">
-                {messages.map((message, index_message) => (
-                  <div
-                    key={index_message}
-                    className={`flex mt-5 ${
-                      message.senderId === currentUserId
-                        ? "justify-end"
-                        : "justify-start"
-                    }`}
-                  >
-                    {message.senderId !== currentUserId && (
-                      <div className="flex items-center gap-4 mt-5">
-                        <div className="w-12 h-12">
-                          <img
-                            src={selectedChatUser?.image[0].url}
-                            className="w-full h-full rounded-full object-cover"
-                          />
+              <div className="flex-1 min-h-0 px-4 pt-2 pb-[20px] overflow-y-auto scrollbar">
+                {(messages[selectedUserId] || []).map(
+                  (message, index_message) => (
+                    <div
+                      key={index_message}
+                      ref={
+                        index_message ===
+                        (messages[selectedUserId]?.length || 0) - 1
+                          ? scrollRef
+                          : null
+                      }
+                      className={`flex mt-5 ${
+                        message.fromSelf ? "justify-end" : "justify-start"
+                      }`}
+                    >
+                      {!message.fromSelf && (
+                        <div className="flex items-center gap-4 mt-5">
+                          <div className="w-12 h-12">
+                            <img
+                              src={selectedChatUser?.image[0].url}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          </div>
+                          <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
+                            {message.message.text}
+                          </span>
                         </div>
-                        <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                          {message.content}
-                        </span>
-                      </div>
-                    )}
+                      )}
 
-                    {message.senderId === currentUserId && (
-                      <div className="flex justify-end mt-5">
-                        <span className="px-5 py-2 bg-purple-600 text-white rounded-[30px]">
-                          {message.content}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      {message.fromSelf && (
+                        <div className="flex justify-end mt-5">
+                          <span className="px-5 py-2 bg-purple-600 text-white rounded-[30px]">
+                            {message.message.text}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )
+                )}
               </div>
               <div className="w-full h-[80px] border-gray-800 border-t-[1px] flex justify-center items-center gap-[24px]">
                 <div className="relative">
@@ -744,8 +797,13 @@ const MatchingPage = () => {
                 </div>
                 <form onSubmit={handleSendChat} className="w-[80%] flex">
                   <input
-                    value={inputMsg}
-                    onChange={(e) => setInputMsg(e.target.value)}
+                    value={inputMsg[selectedUserId] || ""}
+                    onChange={(e) =>
+                      setInputMsg((prev) => ({
+                        ...prev,
+                        [selectedUserId]: e.target.value,
+                      }))
+                    }
                     type="text"
                     placeholder="Message here...."
                     className="px-[14px] w-full h-[48px] bg-BG text-white rounded-[30px] outline-none"
