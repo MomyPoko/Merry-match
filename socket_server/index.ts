@@ -1,6 +1,5 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import mongoose from "mongoose";
 import http from "http";
 import { Server, Socket } from "socket.io";
 import dotenv from "dotenv";
