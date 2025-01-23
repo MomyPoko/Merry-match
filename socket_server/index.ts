@@ -48,7 +48,7 @@ io.on("connection", (socket) => {
         `Sending message to ${data.to}, socket id: ${sendUserSocket}`
       );
 
-      io.to(sendUserSocket).emit("receiveMessage", {
+      socket.to(sendUserSocket).emit("receiveMessage", {
         from: data.from,
         msg: data.msg,
       });

@@ -10,6 +10,7 @@ import { IoHeart } from "react-icons/io5";
 import { AiFillEye } from "react-icons/ai";
 import { RiSendPlaneFill } from "react-icons/ri";
 import { BsEmojiSmileFill } from "react-icons/bs";
+import { io, Socket } from "socket.io-client";
 import axios from "axios";
 import * as React from "react";
 import Box from "@mui/material/Box";
@@ -68,9 +69,11 @@ const MatchingPage = () => {
 
   const { data: session } = useSession();
 
-  const swiperRef = useRef<any>(null);
+  const SOCKET_SERVER_URL = "http://localhost:4000";
 
+  const swiperRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const socket = useRef<Socket | null>(null);
 
   const currentUserId = session?.user?.id;
 
@@ -110,7 +113,7 @@ const MatchingPage = () => {
       setMatchingData(response.data);
       setNoUsersFoundMessage(null);
 
-      console.log("Matching data fetch Matchingpage: ", response.data);
+      // console.log("Matching data fetch Matchingpage: ", response.data);
     } catch (error) {
       console.log("Error fetching matching: ", error);
     }
@@ -138,7 +141,7 @@ const MatchingPage = () => {
         setNoUsersFoundMessage(null);
       }
 
-      console.log("Filtered Users Data: ", filteredUsers);
+      // console.log("Filtered Users Data: ", filteredUsers);
     } catch (error: any) {
       if (error.response?.status === 404) {
         setNoUsersFoundMessage("User not found");
@@ -251,7 +254,7 @@ const MatchingPage = () => {
         [user._id]: "",
       }));
 
-      console.log("Get data message: ", response.data);
+      // console.log("Get data message: ", response.data);
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
@@ -265,39 +268,52 @@ const MatchingPage = () => {
       return;
     }
 
-    if (!inputMsg[selectedUserId] || inputMsg[selectedUserId].trim() === "") {
+    const messageText = inputMsg[selectedUserId]?.trim();
+    if (!messageText) {
       console.error("Error: Message content is empty");
       return;
     }
 
     try {
-      const messageText = inputMsg[selectedUserId]?.trim() || "";
-
-      if (!messageText) return;
-
       const response = await axios.post("/api/messages/index", {
         from: currentUserId,
         to: selectedUserId,
         message: messageText,
       });
 
-      setMessages((prev) => ({
-        ...prev,
-        [selectedUserId]: [
-          ...(prev[selectedUserId] || []),
-          {
-            fromSelf: true,
-            message: { text: messageText },
-          },
-        ],
-      }));
+      if (socket.current) {
+        socket.current.emit("sendMessage", {
+          from: currentUserId,
+          to: selectedUserId,
+          msg: { text: messageText },
+        });
 
-      setInputMsg((prev) => ({
-        ...prev,
-        [selectedUserId]: "",
-      }));
+        console.log("Message sent via socket:", {
+          from: currentUserId,
+          to: selectedUserId,
+          text: messageText,
+        });
 
-      console.log("Message sent: ", response.data);
+        setMessages((prev) => ({
+          ...prev,
+          [selectedUserId]: [
+            ...(prev[selectedUserId] || []),
+            {
+              fromSelf: true,
+              message: { text: messageText },
+            },
+          ],
+        }));
+
+        setInputMsg((prev) => ({
+          ...prev,
+          [selectedUserId]: "",
+        }));
+      } else {
+        console.error("Socket connection not established");
+      }
+
+      // console.log("Message sent: ", response.data);
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -331,6 +347,10 @@ const MatchingPage = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
+
+    if (messages) {
+      console.log("Messages state updated:", messages);
+    }
   }, [
     pages,
     activeMerryIndex,
@@ -342,6 +362,38 @@ const MatchingPage = () => {
     messages,
     selectedUserId,
   ]);
+
+  useEffect(() => {
+    socket.current = io(SOCKET_SERVER_URL);
+
+    socket.current.on("connect", () => {
+      console.log("Socket connected:", socket.current?.id);
+    });
+
+    socket.current.on("receiveMessage", (data) => {
+      console.log("Message received in client:", data);
+
+      setMessages((prev) => ({
+        ...prev,
+        [data.from]: [
+          ...(prev[data.from] || []),
+          { fromSelf: false, message: { text: data.msg.text } },
+        ],
+      }));
+    });
+
+    return () => {
+      socket.current?.disconnect();
+      console.log("Socket connection closed");
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentUserId && socket.current) {
+      socket.current.emit("addUser", currentUserId);
+      console.log(`User added to socket: ${currentUserId}`);
+    }
+  }, [currentUserId]);
 
   return (
     <div className="w-full h-full flex overflow-hidden">
@@ -762,7 +814,7 @@ const MatchingPage = () => {
                             />
                           </div>
                           <span className="px-5 py-2 bg-purple-200 text-black rounded-[30px]">
-                            {message.message.text}
+                            {message.message?.text}
                           </span>
                         </div>
                       )}
@@ -770,7 +822,7 @@ const MatchingPage = () => {
                       {message.fromSelf && (
                         <div className="flex justify-end mt-5">
                           <span className="px-5 py-2 bg-purple-600 text-white rounded-[30px]">
-                            {message.message.text}
+                            {message.message?.text}
                           </span>
                         </div>
                       )}
