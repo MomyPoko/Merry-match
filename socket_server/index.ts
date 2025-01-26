@@ -7,16 +7,17 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-const port = 4000; //ย้ายไป env
+const port = process.env.PORT || 4000;
 
-app.use(cors({ origin: "*" }));
+app.use(cors());
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // เปลี่ยนเป็นโดเมนของ Next.js frontend เช่น "https://your-frontend.vercel.app"
+    origin: "process.env.FRONTEND_URL",
     methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
     credentials: true,
   },
 });
@@ -29,7 +30,7 @@ declare global {
 global.onlineUsers = new Map();
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  // console.log("User connected:", socket.id);
   global.chatSocket = socket;
 
   socket.on("addUser", (userId) => {
@@ -38,7 +39,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendMessage", (data) => {
-    console.log("Message received on server:", data);
+    // console.log("Message received on server:", data);
 
     const sendUserSocket = onlineUsers.get(data.to);
 
@@ -57,7 +58,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
+    // console.log(`User disconnected: ${socket.id}`);
     onlineUsers.forEach((value, key) => {
       if (value === socket.id) {
         onlineUsers.delete(key);
@@ -67,8 +68,12 @@ io.on("connection", (socket) => {
   });
 });
 
-app.get("/test", (req: Request, res: Response) => {
-  res.json("Server API is working");
+app.get("/", (req: Request, res: Response) => {
+  res.json("Welcome to the Socket.IO server!");
+});
+
+app.get("/health", (req: Request, res: Response) => {
+  res.status(200).json({ status: "ok" });
 });
 
 server.listen(port, () => {
